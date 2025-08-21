@@ -16,16 +16,29 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 9000f;
     public bool canJump = false;
     private float lastJumpTime = 0f;
-    private float time = 0;
     public float fakeGravity = 20f;
-    public bool isGrounded=false;
+    public bool isGrounded = false;
     private float groundedCheckDistance = 0.25f;
     private float groundedCheckOriginOffset = -0.95f;
     public bool isTouchingWall = false;
     private float wallJumpCheckDistance = 0.5f;
     private float wallJumpCheckOriginOffset = 0.5f;
-    public bool canWallJump=false;
+    public bool canWallJump = false;
     public float wallJumpForce = 4000f;
+    public int heldItem = 0;
+    public Transform muzzlePoint;
+    public GameObject impactParticles;
+    public float currentAccuracyModifier = 0f;
+
+    public List<GameObject> allItemMeshes = new List<GameObject>();
+    public List<Weapon> allWeapons = new List<Weapon>();
+
+    public Weapon? GetWeapon()
+    {
+        if (heldItem == 0 || (heldItem < allWeapons.Count - 1)) { return null; }
+        else{return allWeapons[heldItem-1]; }
+    }
+
     private void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -36,15 +49,14 @@ public class PlayerController : MonoBehaviour
     }
     void Start()
     {
-        
+        RefreshItemMesh();
     }
 
     void Update()
     {
-        time+= Time.deltaTime;
 
         currentSpeed = rb.velocity.magnitude;
-        canJump = time > lastJumpTime + 0.25f && isGrounded;
+        canJump = GameManager.instance.time > lastJumpTime + 0.25f && isGrounded;
         isGrounded = Physics.Raycast(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down, groundedCheckDistance);
         isTouchingWall = 
             Physics.Raycast(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right, wallJumpCheckDistance) ||
@@ -64,6 +76,7 @@ public class PlayerController : MonoBehaviour
             {
                 rb.AddForce(Vector3.up * jumpForce);
                 Debug.Log("jump");
+                anim.SetTrigger("Jump");
             }
             else if (isTouchingWall && canWallJump)
             {
@@ -71,10 +84,21 @@ public class PlayerController : MonoBehaviour
                 rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce);
                 rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
                 Debug.Log("walljump");
-
+                anim.SetTrigger("Jump");
             }
-        } 
-        
+        }
+        if (InputManager.instance.scrollDelta != Vector2.zero)
+        {
+            heldItem += (int)InputManager.instance.scrollDelta.y;
+            heldItem = Mathf.Clamp(heldItem, 0, 2);
+            RefreshItemMesh();
+        }
+        if (InputManager.instance.mouse1)
+        {
+            if (heldItem == 0 || (heldItem < allWeapons.Count - 1)) { return; }
+
+            if (GetWeapon() != null) { GetWeapon().Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position); }
+        }
     }
     private void FixedUpdate()
     {
@@ -88,6 +112,25 @@ public class PlayerController : MonoBehaviour
 
         anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
         anim.SetInteger("MovementZ", Mathf.RoundToInt(InputManager.instance.wasdInputs.y));
+        anim.SetInteger("HeldItem", heldItem);
+        anim.SetBool("Grounded", isGrounded);
+
+        if (isGrounded)
+        {
+            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 1f, Time.fixedDeltaTime*5f);
+            if (currentAccuracyModifier > 0.95f)
+            {
+                currentAccuracyModifier = 1f;
+            }
+        }
+        else
+        {
+            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 0f, Time.fixedDeltaTime*5f);
+            if (currentAccuracyModifier < 0.05f)
+            {
+                currentAccuracyModifier = 0f;
+            }
+        }
     }
     private void HandleMouseLook()
     {
@@ -103,5 +146,14 @@ public class PlayerController : MonoBehaviour
             if (mouseLookXY.y > 360f) { mouseLookXY.y -= 360f; }
             if (mouseLookXY.y < -360f) { mouseLookXY.y += 360f; }
         }
+    }
+    public void RefreshItemMesh()
+    {
+        for (int i = 0; i < allItemMeshes.Count; i++)
+        {
+            allItemMeshes[i].gameObject.SetActive(false);
+        }
+        if (GetWeapon() != null) { allItemMeshes[GetWeapon().meshIndex].gameObject.SetActive(true); }
+
     }
 }

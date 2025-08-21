@@ -23,6 +23,7 @@ public class InputManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        Cursor.lockState = CursorLockMode.Locked;   
     }
     private void LateUpdate()
     {
