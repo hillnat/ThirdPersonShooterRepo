@@ -24,6 +24,6 @@ public class Weapon : MonoBehaviour
 
         Debug.DrawRay(cameraOrigin, cameraForward * 999f, Color.green, 1f);
         Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
-        ParticleManager.instance.SpawnParticle(impactParticles, hit2.point, Quaternion.identity);
+        if (impactParticles != null) { ParticleManager.instance.SpawnParticle(impactParticles, hit2.point, Quaternion.identity); }
     }
 }

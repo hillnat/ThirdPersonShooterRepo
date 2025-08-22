@@ -19,6 +19,7 @@ public class ParticleManager : MonoBehaviour
 
     public void SpawnParticle(GameObject particle, Vector3 postiion, Quaternion rotation)
     {
+        if (particle == null) { return; }
         Instantiate(particle, postiion, rotation);
     }
 }
