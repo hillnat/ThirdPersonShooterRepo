@@ -1,0 +1,373 @@
+using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour, IPunObservable
+{
+    //[Header("Components")]
+    private Rigidbody rb;
+    private Animator anim;
+    private CapsuleCollider col;
+    //[Header("Movement")]
+    private const float moveSpeed = 1600f;
+    private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
+    public float currentSpeed;
+    //[Header("Camera")]
+    public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
+    private Camera myCamera;
+    public Transform cameraParent;
+    //[Header("Mouse Look")]
+    private Vector2 mouseLookXY = Vector2.zero;
+    public float mouseSensitivty = 25f;
+    //[Header("Jumping")]
+    private const float jumpForce = 850f;
+    private bool canJump = false;
+    private float lastJumpTime = 0f;
+    private const float fakeGravity = 800f;
+    //[Header("Ground Checks")]
+    private bool isGrounded = false;
+    private const float groundedCheckDistance = 0.25f;
+    private const float groundedCheckOriginOffset = -0.95f;
+    private Vector3 currentGroundNormal = Vector3.zero;
+    //[Header("Wall Running")]
+    private bool isTouchingWallRight = false;
+    private bool isTouchingWallLeft = false;
+    private bool isTouchingWall => isTouchingWallLeft || isTouchingWallRight;
+    private bool isWallRunningRight = false;
+    private bool isWallRunningLeft = false;
+    private bool isWallRunning => isWallRunningLeft || isWallRunningRight;
+    //[Header("Wall Jumping")]
+    private const float wallJumpCheckDistance = 1f;
+    private const float wallJumpCheckOriginOffset = 0.5f;
+    private bool canWallJump = false;
+    private const float wallJumpForce = 950f;
+    //[Header("Mantling")]
+    private bool hasMantlePoint = false;
+    private bool canMantle = true;
+    private const float mantleForce = 900f;
+    //[Header("Inventory")]
+    public List<Weapon> allWeapons = new List<Weapon>();
+    private int heldItem = 0;
+    //[Header("UI")]
+    public TMP_Text ammoText;
+    public TMP_Text healthText;
+    //[Header("Audio")]
+    public int jumpAudio;
+    public int jump2Audio;
+    //[Header("Networking")]
+    private bool isMine = false;
+    public PhotonView myView;
+    public List<GameObject> destroyIfNotLocal = new List<GameObject>();
+
+    public Transform muzzlePoint;
+    public GameObject impactParticles;
+    public float currentAccuracyModifier = 0f;
+
+    public float health = 100;
+    public bool isDead => health <= 0;
+    public float lastDeathTime = 0f;
+    private float baseFov = 90f;
+    private float zoomFov = 70f;
+    private bool isAiming = false;
+    private float baseColliderHeight = 0f;
+
+    public Weapon? GetWeapon()
+    {
+        if (heldItem == 0) { return null; }
+        else { return allWeapons[heldItem - 1]; }
+    }
+
+
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (isMine)
+        {
+            stream.SendNext(heldItem);
+            stream.SendNext(cameraParent.transform.eulerAngles);
+        }
+        else
+        {
+            int temp = heldItem;
+            heldItem = (int)stream.ReceiveNext();
+            if (temp != heldItem)
+            {
+                RefreshItemMesh();
+            }
+            cameraParent.transform.eulerAngles = (Vector3)stream.ReceiveNext();
+        }
+    }
+    #region Unity Callbacks
+    private void Awake()
+    {
+        anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
+        myView = GetComponent<PhotonView>();
+        col = GetComponent<CapsuleCollider>();
+        baseColliderHeight=col.height;
+        isMine = myView.IsMine;
+        if (isMine)
+        {
+            myCamera = Camera.main;
+            myCamera.transform.parent = cameraParent;
+            myCamera.transform.localPosition = cameraOffset;
+            myCamera.fieldOfView = baseFov;
+        }
+        else
+        {
+            for (int i = 0; i < destroyIfNotLocal.Count; i++)
+            {
+                Destroy(destroyIfNotLocal[i].gameObject);
+            }
+        }
+    }
+    void Start()
+    {
+        health = 100;
+        RefreshItemMesh();
+    }
+
+    void Update()
+    {
+        if (isMine)
+        {
+            HandleUI();
+            HandleGroundAndWallChecks();
+            HandleMouseLook();
+            HandleZoom();
+            if (!isDead)
+            {
+                HandleInputs();
+            }
+            else
+            {
+                if (GameManager.instance.time > lastDeathTime + 3f)
+                {
+                    Respawn();
+                }
+            }
+        }
+    }
+    private void FixedUpdate()
+    {
+        if (isMine)
+        {
+            if (!isDead)
+            {
+                HandleMovement();
+            }
+            HandleFakeGravity();
+            HandleAnimatorStates();
+            HandleAccuracyModifier();
+        }
+    }
+    #endregion
+    private void HandleGroundAndWallChecks()
+    {
+        currentSpeed = rb.velocity.magnitude;
+        isGrounded = Physics.Raycast(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down, out RaycastHit groundHit, groundedCheckDistance);
+        isTouchingWallRight = Physics.Raycast(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right, wallJumpCheckDistance);
+        isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
+        hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
+
+        canJump = GameManager.instance.time > lastJumpTime + 0.25f && isGrounded;
+        isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and ttrying to move into the wall
+        isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
+
+        if (!canWallJump && isGrounded) { canWallJump = true; }
+        if (!canMantle && isGrounded) { canMantle = true; }
+        if (isGrounded) { currentGroundNormal = groundHit.normal; }
+        else { currentGroundNormal = Vector3.zero; }
+
+        Debug.DrawRay(transform.position + new Vector3(0, -1f, 0), Vector3.down * groundedCheckDistance, Color.red);
+        Debug.DrawRay(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right * wallJumpCheckDistance, isTouchingWall ? Color.green : Color.red);
+        Debug.DrawRay(transform.position + transform.right * -wallJumpCheckOriginOffset, transform.right * -wallJumpCheckDistance, isTouchingWall ? Color.green : Color.red);
+        Debug.DrawRay(transform.position, transform.forward, hasMantlePoint ? Color.green : Color.red);
+    }
+    private void HandleUI()
+    {
+        if (GetWeapon() != null)
+        {
+            ammoText.text = GetWeapon().GetIsReloading() ? "" + GetWeapon().GetReloadTimeLeft() : "" + GetWeapon().ammo;
+
+            if (GetWeapon().currentRecoil != Vector2.zero) { AddMouseLook(GetWeapon().currentRecoil); }
+        }
+        else { ammoText.text = ""; }
+
+
+        healthText.text = Mathf.CeilToInt(health) + "";
+        healthText.color = Color.Lerp(Color.red, Color.green, health / 100f);
+    }
+    private void HandleAccuracyModifier()
+    {
+        if (isGrounded)
+        {
+            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 1f, Time.fixedDeltaTime * 5f);
+            if (currentAccuracyModifier > 0.95f)
+            {
+                currentAccuracyModifier = 1f;
+            }
+        }
+        else
+        {
+            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 0f, Time.fixedDeltaTime * 5f);
+            if (currentAccuracyModifier < 0.05f)
+            {
+                currentAccuracyModifier = 0f;
+            }
+        }
+    }
+    private void HandleFakeGravity()
+    {
+        if (!isGrounded & !isWallRunning) { rb.AddForce(Vector3.down * fakeGravity * Time.fixedDeltaTime); }
+    }
+    private void HandleMovement()
+    {
+        if (InputManager.instance.wasdInputs != Vector2.zero)
+        {
+            rb.AddForce(Vector3.ProjectOnPlane(transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * curMoveSpeedMod * Time.fixedDeltaTime, currentGroundNormal));
+            //Only apply sideways forces if not wall running. 
+            if (InputManager.instance.wasdInputs.x > 0 && !isWallRunningRight) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
+            else if (InputManager.instance.wasdInputs.x < 0 && !isWallRunningLeft) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
+
+        }
+    }
+    private void HandleInputs()
+    {
+        if (InputManager.instance.jump)
+        {
+            if (hasMantlePoint && canMantle)
+            {
+                AudioManager.instance.RPC_SpawnSound(true, jump2Audio, transform.position + Vector3.up, 0.3f);
+                canMantle = false;
+                rb.AddForce(Vector3.up * mantleForce);
+                anim.SetTrigger("Mantle");
+                Debug.Log("mantle");
+            }
+            else if (canJump)
+            {
+                rb.AddForce(Vector3.up * jumpForce);
+                AudioManager.instance.RPC_SpawnSound(true, jumpAudio, transform.position + Vector3.up, 0.3f);
+
+                Debug.Log("jump");
+                anim.SetTrigger("Jump");
+            }
+            else if (isTouchingWall && canWallJump)
+            {
+                canWallJump = false;
+                rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce);
+                rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
+                rb.AddForce(Vector3.up * jumpForce * 0.7f);
+
+                Debug.Log("walljump");
+                anim.SetTrigger("Jump");
+                AudioManager.instance.RPC_SpawnSound(true, jump2Audio, transform.position + Vector3.up, 0.3f);
+
+            }
+        }
+        if (InputManager.instance.scrollDelta != Vector2.zero)//change  item
+        {
+            Weapon currentWeapon = GetWeapon();
+            if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
+            heldItem += (int)InputManager.instance.scrollDelta.y;
+            heldItem = Mathf.Clamp(heldItem, 0, allWeapons.Count);
+            RefreshItemMesh();
+        }
+        if (InputManager.instance.mouse1)
+        {
+            if (heldItem == 0) {/* RPC_ChangeHealth(-101f);*/ return; }
+
+            if (GetWeapon() != null && GetWeapon().GetCanFire())
+            {
+                anim.SetTrigger("Fire");
+                GetWeapon().Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
+            }
+        }
+        if (InputManager.instance.reload)
+        {
+            Weapon currentWeapon = GetWeapon();
+            if (currentWeapon != null && currentWeapon.GetCanReload())
+            {
+                currentWeapon.StartReloading();
+            }
+        }
+    }
+    private void HandleAnimatorStates()
+    {
+        anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
+        anim.SetInteger("MovementZ", Mathf.RoundToInt(InputManager.instance.wasdInputs.y));
+        anim.SetInteger("HeldItem", heldItem);
+        anim.SetBool("Grounded", isGrounded);
+        anim.SetBool("WallRunningRight", isWallRunningRight);
+        anim.SetBool("WallRunningLeft", isWallRunningLeft);
+        anim.SetBool("Dead", isDead);
+        if (GetWeapon() != null) { anim.SetBool("Reloading", GetWeapon().GetIsReloading()); }
+        else { anim.SetBool("Reloading", false); }
+    }
+    private void HandleMouseLook()
+    {
+        cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, mouseLookXY.y, transform.eulerAngles.z);
+
+        if (InputManager.instance.mouseDelta != Vector2.zero)
+        {
+            AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
+        }
+    }
+    public void AddMouseLook(Vector2 xy)
+    {
+        mouseLookXY.x -= xy.x;
+        mouseLookXY.y += xy.y;
+
+        mouseLookXY.x = Mathf.Clamp(mouseLookXY.x, -90f, 90f);
+        if (mouseLookXY.y > 360f) { mouseLookXY.y -= 360f; }
+        if (mouseLookXY.y < -360f) { mouseLookXY.y += 360f; }
+    }
+    public void RefreshItemMesh()
+    {
+        for (int i = 0; i < allWeapons.Count; i++)
+        {
+            allWeapons[i].gameObject.SetActive(false);
+        }
+        if (GetWeapon() != null) { GetWeapon().gameObject.SetActive(true); }
+    }
+    private void HandleZoom()
+    {
+        isAiming = InputManager.instance.mouse2Hold;
+        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? zoomFov : baseFov, Time.deltaTime * 35f);
+    }
+    [PunRPC]
+    public void RPC_ChangeHealth(float delta)
+    {
+        if (!isMine || isDead) { return; }
+        health += delta;
+        if (delta < 0)
+        {
+            AudioManager.instance.RPC_SpawnSound(true, Random.Range((int)2, (int)4), transform.position, 0.7f);
+        }
+        if(health<=0) { Die(); }
+    }
+    public void Die()
+    {
+        health = 0;
+        lastDeathTime = GameManager.instance.time;
+        for (int i = 0; i < allWeapons.Count; i++)
+        {
+            allWeapons[i].ammo = allWeapons[i].maxAmmo;
+            allWeapons[i].currentRecoil = Vector2.zero;
+        }
+        col.height = 0.3f;
+    }
+    public void Respawn()
+    {
+        for (int i = 0; i < allWeapons.Count; i++)
+        {
+            allWeapons[i].ammo=allWeapons[i].maxAmmo;
+            allWeapons[i].currentRecoil=Vector2.zero;
+        }
+        health = 100;
+        col.height = baseColliderHeight;
+        transform.position = GameManager.instance.GetRandomSpawn();
+    }
+}

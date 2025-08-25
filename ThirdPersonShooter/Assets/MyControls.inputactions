@@ -18,7 +18,25 @@
                     "name": "Mouse1",
                     "type": "Button",
                     "id": "d34a19ac-3dea-4f0a-8f41-f5e657cfee15",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Mouse2Hold",
+                    "type": "PassThrough",
+                    "id": "5f06836a-95c9-4b3d-bac9-3c3e3cfd827c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Mouse1Hold",
+                    "type": "PassThrough",
+                    "id": "7fdacedf-cb58-49e0-ad1d-c074ea61faa4",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -27,7 +45,16 @@
                     "name": "Jump",
                     "type": "Button",
                     "id": "68c0c49f-afdb-4dc3-a4f1-3fceb286b66c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Reload",
+                    "type": "Button",
+                    "id": "1b15dc5c-63c3-4e73-9973-28abb1a1e4ca",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -122,12 +149,45 @@
                 },
                 {
                     "name": "",
+                    "id": "a01781fb-a493-4b96-8e29-b3e764e77223",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse2Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a0a5d5e-fb84-4cf9-a2c5-07029e2f95a1",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse1Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "b44ed47c-27ef-4bec-80c3-2319f7efbd1c",
                     "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a6927ffd-9d3d-46ce-9e99-d2bd845d3a4a",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Reload",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
