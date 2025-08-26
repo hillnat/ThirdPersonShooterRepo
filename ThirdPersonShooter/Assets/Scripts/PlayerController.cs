@@ -18,6 +18,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
     private Camera myCamera;
     public Transform cameraParent;
+    private float baseFov = 90f;
+    private float zoomFov = 60f;
+    private bool isAiming = false;
     //[Header("Mouse Look")]
     private Vector2 mouseLookXY = Vector2.zero;
     public float mouseSensitivty = 25f;
@@ -53,6 +56,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     [Header("UI")]
     public TMP_Text ammoText;
     public TMP_Text healthText;
+    public TMP_Text kdaText;
     [Header("Audio")]
     public AudioClip jumpAudio;
     public AudioClip jump2Audio;
@@ -66,12 +70,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public float currentAccuracyModifier = 0f;
 
     public float health = 100;
+    public int kills = 0;
+    public int deaths = 0;
     public bool isDead => health <= 0;
     public float lastDeathTime = 0f;
-    private float baseFov = 90f;
-    private float zoomFov = 70f;
-    private bool isAiming = false;
+    
     private float baseColliderHeight = 0f;
+    private int lastHitByViewId = int.MinValue;
 
     public Weapon? GetWeapon()
     {
@@ -126,6 +131,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         health = 100;
         RefreshItemMesh();
+        RefreshKdaText();
+        ResetAllWeapons();
+        mouseSensitivty = SettingsManager.instance.sensitivity;
+        GameManager.instance.view.RPC(nameof(GameManager.RPC_RefreshPlayerList), RpcTarget.All);//Tell GM to update player list once we have spawned
+        
     }
 
     void Update()
@@ -198,6 +208,10 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
         healthText.text = Mathf.CeilToInt(health) + "";
         healthText.color = Color.Lerp(Color.red, Color.green, health / 100f);
+    }
+    public void RefreshKdaText()
+    {
+        kdaText.text = $"K:{kills} D:{deaths}";
     }
     private void HandleAccuracyModifier()
     {
@@ -310,12 +324,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
         cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, mouseLookXY.y, transform.eulerAngles.z);
 
-        if (InputManager.instance.mouseDelta != Vector2.zero)
+        if (!SettingsManager.instance.settingsOpen && InputManager.instance.mouseDelta != Vector2.zero)//Apply mouse rotations
         {
             AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
-        }
-        //Wall check for camera
-        if (Physics.Raycast(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset), out RaycastHit camHit, cameraOffset.magnitude))
+        }  
+        if (Physics.Raycast(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset), out RaycastHit camHit, cameraOffset.magnitude))//Wall check for camera
         {
             myCamera.transform.position = camHit.point;
         }
@@ -358,26 +371,56 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         if(health<=0) { Die(); }
     }
+    [PunRPC]
+    public void RPC_AddKills(int delta)
+    {
+        kills += delta;
+        if (isMine)
+        {
+            RefreshKdaText();
+        }
+    }
+    [PunRPC]
+    public void RPC_AddDeaths(int delta)
+    {
+        deaths += delta;
+        if (isMine)
+        {
+            RefreshKdaText();
+        }
+    }
+    [PunRPC]
+    public void RPC_SetLastHitBy(int viewId)
+    {
+        if(!isMine) { return; }
+        lastHitByViewId = viewId;
+    }
     public void Die()
     {
+        myView.RPC(nameof(RPC_AddDeaths), RpcTarget.AllBuffered, 1);//Add death
+        if (lastHitByViewId != int.MinValue) {
+            PhotonView.Find(lastHitByViewId).RPC(nameof(RPC_AddKills), RpcTarget.AllBuffered, 1);//Add kill to killer
+        }
         health = 0;
         lastDeathTime = GameManager.instance.time;
+        ResetAllWeapons();
+        col.height = 0.3f;
+        lastHitByViewId = int.MinValue;
+    }
+    public void Respawn()
+    {
+        ResetAllWeapons();
+        health = 100;
+        col.height = baseColliderHeight;
+        transform.position = GameManager.instance.GetRandomSpawn();
+        lastHitByViewId = int.MinValue;
+    }
+    private void ResetAllWeapons()
+    {
         for (int i = 0; i < allWeapons.Count; i++)
         {
             allWeapons[i].ammo = allWeapons[i].maxAmmo;
             allWeapons[i].currentRecoil = Vector2.zero;
         }
-        col.height = 0.3f;
-    }
-    public void Respawn()
-    {
-        for (int i = 0; i < allWeapons.Count; i++)
-        {
-            allWeapons[i].ammo=allWeapons[i].maxAmmo;
-            allWeapons[i].currentRecoil=Vector2.zero;
-        }
-        health = 100;
-        col.height = baseColliderHeight;
-        transform.position = GameManager.instance.GetRandomSpawn();
     }
 }

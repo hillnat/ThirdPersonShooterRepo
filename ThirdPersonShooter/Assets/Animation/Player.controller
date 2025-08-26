@@ -906,12 +906,6 @@ AnimatorStateTransition:
   - m_ConditionMode: 6
     m_ConditionEvent: HeldItem
     m_EventTreshold: 1
-  - m_ConditionMode: 6
-    m_ConditionEvent: MovementX
-    m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: MovementZ
-    m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: WallRunningRight
     m_EventTreshold: 0
@@ -1308,7 +1302,7 @@ AnimatorStateMachine:
     m_Position: {x: 490, y: 380, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2854488018376144535}
-    m_Position: {x: -150, y: 120, z: 0}
+    m_Position: {x: -130, y: 50, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8487569356526643431}
     m_Position: {x: -410, y: 500, z: 0}

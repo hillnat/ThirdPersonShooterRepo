@@ -73,7 +73,8 @@ public class Weapon : MonoBehaviour
                 hitPlayer = true;
                 if (!hitPc.isDead)
                 {
-                    hitPc.myView.RPC("RPC_ChangeHealth", RpcTarget.All, -damage);
+                    hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -damage);
+                    hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
                 }
             }
             hitAnything = true;

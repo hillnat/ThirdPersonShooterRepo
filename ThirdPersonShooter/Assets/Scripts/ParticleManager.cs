@@ -2,7 +2,7 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+[RequireComponent(typeof(PhotonView))]
 public class ParticleManager : MonoBehaviour
 {
     public static ParticleManager instance;

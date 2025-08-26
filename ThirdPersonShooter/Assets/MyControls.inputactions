@@ -51,6 +51,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "OpenSettings",
+                    "type": "Button",
+                    "id": "c6767a1e-4c87-4c1d-8176-8d102fd84824",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Reload",
                     "type": "Button",
                     "id": "1b15dc5c-63c3-4e73-9973-28abb1a1e4ca",
@@ -177,6 +186,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "abc09ea2-c2f7-419e-a2f3-9881bb83b3b5",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OpenSettings",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8ad14f8c-85bb-4afe-93b7-76eb132ae606",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OpenSettings",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

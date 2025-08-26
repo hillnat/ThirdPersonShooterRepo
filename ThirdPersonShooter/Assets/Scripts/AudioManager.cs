@@ -2,6 +2,7 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+[RequireComponent(typeof(PhotonView))]
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager instance;
@@ -9,7 +10,7 @@ public class AudioManager : MonoBehaviour
     private AudioClip[] clipList;
     private List<AudioEmitter> emitters = new List<AudioEmitter>();
     private Dictionary<AudioClip, int> clipToIndex = new Dictionary<AudioClip, int>();
-
+    public float masterVolumeMultiplier=1f;
     private void Awake()
     {
         if (instance == null)
@@ -24,6 +25,7 @@ public class AudioManager : MonoBehaviour
     }
     private void Start()
     {
+        masterVolumeMultiplier=SettingsManager.instance.masterVolume;
         emitters.Clear();
         for (int i = 0; i < transform.childCount; i++)
         {
@@ -60,14 +62,16 @@ public class AudioManager : MonoBehaviour
         AudioEmitter myEmitter = GetFreeEmitter();
         if (myEmitter == null) { return; }
         
-        myEmitter.aS.volume = volume;
+        myEmitter.aS.volume = volume * masterVolumeMultiplier;
         myEmitter.aS.PlayOneShot(clipList[clipIndex]);
+
         if (followViewID != int.MinValue)
         {
             myEmitter.followObject = PhotonView.Find(followViewID).transform;
             myEmitter.transform.localPosition = position;
         }
         else { myEmitter.transform.position = position; }
+
         Debug.Log("Spawned sound " + clipList[clipIndex].name);
     }
     private AudioEmitter? GetFreeEmitter()

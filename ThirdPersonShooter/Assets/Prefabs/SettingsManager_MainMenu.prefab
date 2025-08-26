@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7517440768947200123
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.9729733
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.611174
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.2301464
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 87572949403435564, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1150255069951045002, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5305293353448588416, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5305293353448588416, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5305293353448588416, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 676.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900225222318134880, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: exitMatchButton
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900225222318134880, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: masterVolumeSlider
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900225222318134880, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: sensitivityInputField
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8096496418722444397, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_Name
+      value: SettingsManager_MainMenu
+      objectReference: {fileID: 0}
+    - target: {fileID: 8271710276744275580, guid: 5060277538d697848a079446c12dfb57, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 2514054482913667432, guid: 5060277538d697848a079446c12dfb57, type: 3}
+    - {fileID: 3157523463179072217, guid: 5060277538d697848a079446c12dfb57, type: 3}
+    - {fileID: 1963383481050391226, guid: 5060277538d697848a079446c12dfb57, type: 3}
+    - {fileID: 242736498242102905, guid: 5060277538d697848a079446c12dfb57, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5060277538d697848a079446c12dfb57, type: 3}
