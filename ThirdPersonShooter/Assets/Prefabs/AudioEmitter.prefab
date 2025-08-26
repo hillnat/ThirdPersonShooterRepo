@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1351648626232715303}
   - component: {fileID: 8503121159553256785}
+  - component: {fileID: 1952365491130507292}
   m_Layer: 0
   m_Name: AudioEmitter
   m_TagString: Untagged
@@ -128,3 +129,17 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1952365491130507292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5881869635969421572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a213c32b28bae44cbae0b3f9744af71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aS: {fileID: 8503121159553256785}
+  followObject: {fileID: 0}

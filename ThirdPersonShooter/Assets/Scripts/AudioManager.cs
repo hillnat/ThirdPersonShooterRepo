@@ -7,7 +7,9 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance;
     public PhotonView myView;
     private AudioClip[] clipList;
-    private List<AudioSource> emitters = new List<AudioSource>();
+    private List<AudioEmitter> emitters = new List<AudioEmitter>();
+    private Dictionary<AudioClip, int> clipToIndex = new Dictionary<AudioClip, int>();
+
     private void Awake()
     {
         if (instance == null)
@@ -18,37 +20,61 @@ public class AudioManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        myView = GetComponent<PhotonView>();
     }
     private void Start()
     {
-        myView = GetComponent<PhotonView>();
         emitters.Clear();
         for (int i = 0; i < transform.childCount; i++)
         {
-            emitters.Add(transform.GetChild(i).GetComponent<AudioSource>());
+            emitters.Add(transform.GetChild(i).GetComponent<AudioEmitter>());
         }
         clipList = Resources.LoadAll<AudioClip>("Audio/");
+
+        // Map clip -> index
+        for (int i = 0; i < clipList.Length; i++)
+        {
+            clipToIndex[clipList[i]] = i;
+            Debug.Log("Found audio clip " + clipList[i].name);
+        }
+    }
+
+    public void PlaySound(bool isNetworked, AudioClip audioClip, Vector3 position, float volume, int followViewID)//Universal call
+    {
+        if (audioClip == null) { Debug.LogWarning("PlaySound:: Sound was null"); return; }
+        int clipIndex = clipToIndex[audioClip];
+        SpawnSound(clipIndex,position,volume,followViewID);//Play instantly for us
+        if (isNetworked)//Network if wanted
+        {
+            myView.RPC(nameof(RPC_SpawnSound), RpcTarget.Others, clipIndex, position, volume, followViewID);
+        }
     }
 
     [PunRPC]
-    public void RPC_SpawnSound(bool isNetworked, int clipIndex, Vector3 position, float volume)
+    public void RPC_SpawnSound(int clipIndex, Vector3 position, float volume, int followViewID)//Just call normal spawn sound
     {
-        AudioSource myEmitter = GetFreeEmitter();
-        if (myEmitter == null) { return; }
-        myEmitter.volume= volume;
-        myEmitter.transform.position = position;
-        myEmitter.PlayOneShot(clipList[clipIndex]);
-
-        if (isNetworked)
-        {
-            myView.RPC("RPC_SpawnSound", RpcTarget.Others, false, clipIndex, position, volume);
-        }
+        SpawnSound(clipIndex, position, volume, followViewID);
     }
-    private AudioSource? GetFreeEmitter()
+    private void SpawnSound(int clipIndex, Vector3 position, float volume, int followViewID)//Actual finding of emitter and playing of sound
+    {
+        AudioEmitter myEmitter = GetFreeEmitter();
+        if (myEmitter == null) { return; }
+        
+        myEmitter.aS.volume = volume;
+        myEmitter.aS.PlayOneShot(clipList[clipIndex]);
+        if (followViewID != int.MinValue)
+        {
+            myEmitter.followObject = PhotonView.Find(followViewID).transform;
+            myEmitter.transform.localPosition = position;
+        }
+        else { myEmitter.transform.position = position; }
+        Debug.Log("Spawned sound " + clipList[clipIndex].name);
+    }
+    private AudioEmitter? GetFreeEmitter()
     {
         for (int i = 0; i < emitters.Count; i++)
         {
-            if(!emitters[i].isPlaying) {return emitters[i]; }
+            if(!emitters[i].aS.isPlaying) {return emitters[i]; }
         }
         return null;
     }

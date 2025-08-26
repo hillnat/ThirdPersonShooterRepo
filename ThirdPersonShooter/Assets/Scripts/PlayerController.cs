@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private const float jumpForce = 850f;
     private bool canJump = false;
     private float lastJumpTime = 0f;
-    private const float fakeGravity = 800f;
+    private const float fakeGravity = 1100f;
     //[Header("Ground Checks")]
     private bool isGrounded = false;
     private const float groundedCheckDistance = 0.25f;
@@ -50,19 +50,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
     private int heldItem = 0;
-    //[Header("UI")]
+    [Header("UI")]
     public TMP_Text ammoText;
     public TMP_Text healthText;
-    //[Header("Audio")]
-    public int jumpAudio;
-    public int jump2Audio;
+    [Header("Audio")]
+    public AudioClip jumpAudio;
+    public AudioClip jump2Audio;
+    public AudioClip painSounds;
     //[Header("Networking")]
     private bool isMine = false;
     public PhotonView myView;
     public List<GameObject> destroyIfNotLocal = new List<GameObject>();
 
     public Transform muzzlePoint;
-    public GameObject impactParticles;
     public float currentAccuracyModifier = 0f;
 
     public float health = 100;
@@ -239,7 +239,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             if (hasMantlePoint && canMantle)
             {
-                AudioManager.instance.RPC_SpawnSound(true, jump2Audio, transform.position + Vector3.up, 0.3f);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.3f, myView.ViewID);
                 canMantle = false;
                 rb.AddForce(Vector3.up * mantleForce);
                 anim.SetTrigger("Mantle");
@@ -248,7 +248,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             else if (canJump)
             {
                 rb.AddForce(Vector3.up * jumpForce);
-                AudioManager.instance.RPC_SpawnSound(true, jumpAudio, transform.position + Vector3.up, 0.3f);
+                AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.3f, myView.ViewID);
 
                 Debug.Log("jump");
                 anim.SetTrigger("Jump");
@@ -258,11 +258,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 canWallJump = false;
                 rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce);
                 rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
-                rb.AddForce(Vector3.up * jumpForce * 0.7f);
+                rb.AddForce(Vector3.up * jumpForce * 1.3f);
 
                 Debug.Log("walljump");
                 anim.SetTrigger("Jump");
-                AudioManager.instance.RPC_SpawnSound(true, jump2Audio, transform.position + Vector3.up, 0.3f);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.3f, myView.ViewID);
 
             }
         }
@@ -314,6 +314,16 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
         }
+        //Wall check for camera
+        if (Physics.Raycast(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset), out RaycastHit camHit, cameraOffset.magnitude))
+        {
+            myCamera.transform.position = camHit.point;
+        }
+        else
+        {
+            myCamera.transform.localPosition = cameraOffset;
+        }
+        Debug.DrawRay(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset) * cameraOffset.magnitude, Color.white);
     }
     public void AddMouseLook(Vector2 xy)
     {
@@ -344,7 +354,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         health += delta;
         if (delta < 0)
         {
-            AudioManager.instance.RPC_SpawnSound(true, Random.Range((int)2, (int)4), transform.position, 0.7f);
+            AudioManager.instance.PlaySound(true, painSounds, Vector3.zero, 0.7f, myView.ViewID);
         }
         if(health<=0) { Die(); }
     }

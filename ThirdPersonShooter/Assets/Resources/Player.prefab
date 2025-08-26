@@ -56,11 +56,11 @@ Transform:
   m_GameObject: {fileID: 2699152596105409037}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.174, y: 0.81, z: -0.01}
+  m_LocalPosition: {x: 0.125, y: 0.3375671, z: 0.916}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2275451757252941351}
+  m_Father: {fileID: 8598455125705054177}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3298541748906394819
 GameObject:
@@ -91,7 +91,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8826663285305901752}
   - {fileID: 686193998713391871}
   - {fileID: 8144802192963503405}
   - {fileID: 694018931532963840}
@@ -135,6 +134,7 @@ Transform:
   - {fileID: 6744255154447774039}
   - {fileID: 3823972021258407753}
   - {fileID: 8383067242914778738}
+  - {fileID: 8826663285305901752}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1297867852649965476
@@ -182,13 +182,13 @@ MonoBehaviour:
   - {fileID: 3429899314460814808}
   ammoText: {fileID: 7197509368289362701}
   healthText: {fileID: 785035224550910475}
-  jumpAudio: 1
-  jump2Audio: 0
+  jumpAudio: {fileID: 8300000, guid: a061fc05aacc6f742a52b8048e9797a9, type: 3}
+  jump2Audio: {fileID: 8300000, guid: 70501ecc872297942ad068feec9f4a52, type: 3}
+  painSounds: {fileID: 8300000, guid: 51e6503b6d539ad47951a08fc3ceb62e, type: 3}
   myView: {fileID: 0}
   destroyIfNotLocal:
   - {fileID: 8569769652085758196}
   muzzlePoint: {fileID: 8826663285305901752}
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   currentAccuracyModifier: 0
   health: 100
   lastDeathTime: 0
@@ -351,8 +351,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291151301
-  m_fontColor: {r: 0.7735849, g: 0.7735849, b: 0.7735849, a: 1}
+    rgba: 4292467161
+  m_fontColor: {r: 0.8490566, g: 0.8490566, b: 0.8490566, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -369,8 +369,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 22
-  m_fontSizeBase: 22
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -809,18 +809,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.3, y: 0.3}
-  yRecoilMinMax: {x: 0, y: 0.1}
   weaponName: M4A1
+  currentRecoil: {x: 0, y: 0}
+  xRecoilMinMax: {x: 0.175, y: 0.25}
+  yRecoilMinMax: {x: 0.03, y: 0.045}
+  pingPongRecoil: 1
   ammo: 0
   maxAmmo: 30
-  lastFiredTime: 0
   fireDelay: 0.05
-  fireSound: 5
   reloadStartTime: 0
   reloadDelay: 1.5
-  damage: 14
+  damage: 23
+  fireSoundsPath: Rifle/Fire/
+  reloadSoundsPath: Rifle/Reload/
+  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
+  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
+  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
 --- !u!4 &686193998713391871 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: da70739f6cde220439538d333791529c, type: 3}
@@ -959,18 +963,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  weaponName: Shotgun
   currentRecoil: {x: 0, y: 0}
   xRecoilMinMax: {x: -0.7, y: 0.7}
   yRecoilMinMax: {x: 0.5, y: 0.7}
-  weaponName: Shotgun
+  pingPongRecoil: 0
   ammo: 0
   maxAmmo: 5
-  lastFiredTime: 0
   fireDelay: 0.5
-  fireSound: 6
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 75
+  fireSoundsPath: Shotgun/Fire/
+  reloadSoundsPath: Shotgun/Reload/
+  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
+  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
+  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
 --- !u!4 &694018931532963840 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
@@ -2364,15 +2372,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  weaponName: 1911
   currentRecoil: {x: 0, y: 0}
   xRecoilMinMax: {x: -0.2, y: 0.2}
   yRecoilMinMax: {x: 0.1, y: 0.2}
-  weaponName: 1911
+  pingPongRecoil: 0
   ammo: 0
   maxAmmo: 8
-  lastFiredTime: 0
   fireDelay: 0.2
-  fireSound: 4
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 35
+  fireSoundsPath: Pistol/Fire
+  reloadSoundsPath: Pistol/Reload
+  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
+  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
+  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}

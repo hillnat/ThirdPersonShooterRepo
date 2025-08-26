@@ -42,6 +42,7 @@ MonoBehaviour:
   - RPC_ChangeHealth
   - RPC_SpawnSound
   - RPC_SpawnParticle
+  - RPC_SpawnLineFx
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
