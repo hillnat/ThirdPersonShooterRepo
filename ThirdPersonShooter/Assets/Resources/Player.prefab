@@ -190,7 +190,7 @@ Transform:
   m_GameObject: {fileID: 2699152596105409037}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.125, y: 0.3375671, z: 0.916}
+  m_LocalPosition: {x: 0.125, y: 0.3375671, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -290,7 +290,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.3
   m_Height: 1.751643
   m_Direction: 1
   m_Center: {x: 0, y: -0.12417853, z: 0}
@@ -320,6 +320,8 @@ MonoBehaviour:
   jumpAudio: {fileID: 8300000, guid: a061fc05aacc6f742a52b8048e9797a9, type: 3}
   jump2Audio: {fileID: 8300000, guid: 70501ecc872297942ad068feec9f4a52, type: 3}
   painSounds: {fileID: 8300000, guid: 51e6503b6d539ad47951a08fc3ceb62e, type: 3}
+  footstepSoundsPath: Player/Footsteps/
+  footsteps: []
   myView: {fileID: 0}
   destroyIfNotLocal:
   - {fileID: 8569769652085758196}
@@ -955,6 +957,9 @@ MonoBehaviour:
   ammo: 0
   maxAmmo: 30
   fireDelay: 0.05
+  pelletsPerShot: 1
+  yawSpread: 0
+  pitchSpread: 0
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 23
@@ -1109,9 +1114,12 @@ MonoBehaviour:
   ammo: 0
   maxAmmo: 5
   fireDelay: 0.5
+  pelletsPerShot: 10
+  yawSpread: 2
+  pitchSpread: 2
   reloadStartTime: 0
   reloadDelay: 1.5
-  damage: 75
+  damage: 7
   fireSoundsPath: Shotgun/Fire/
   reloadSoundsPath: Shotgun/Reload/
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
@@ -2518,6 +2526,9 @@ MonoBehaviour:
   ammo: 0
   maxAmmo: 8
   fireDelay: 0.2
+  pelletsPerShot: 1
+  yawSpread: 0
+  pitchSpread: 0
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 35

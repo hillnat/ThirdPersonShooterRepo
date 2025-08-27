@@ -25,7 +25,7 @@ public class AudioManager : MonoBehaviour
     }
     private void Start()
     {
-        masterVolumeMultiplier=SettingsManager.instance.masterVolume;
+        masterVolumeMultiplier=SettingsManager.instance.settingsFile.masterVolume;
         emitters.Clear();
         for (int i = 0; i < transform.childCount; i++)
         {

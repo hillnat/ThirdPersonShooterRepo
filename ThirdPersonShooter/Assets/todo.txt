@@ -1,10 +1,7 @@
-Save settings as json
-Add usernames
-
 Scoreboard
 Kill notifs
 
-Shotgun spread, damage falloff, single shell reload
+damage falloff, single shell reload
 
 Long term:
 new maps

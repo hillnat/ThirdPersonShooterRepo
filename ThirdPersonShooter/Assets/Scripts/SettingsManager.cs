@@ -17,12 +17,16 @@ public class SettingsManager : MonoBehaviour
     private Canvas mainCanvas;
     public bool settingsOpen = false;
     public Slider masterVolumeSlider;
-    public float masterVolume = 100f;
+    
     public TMP_InputField sensitivityInputField;
-    public float sensitivity = 25f;
+    public TMP_InputField usernameInputField;
+    
     public Button exitMatchButton;
     public Button quitGameButton;
     private bool isInGameScene = false;
+    private string settingsPath=> Path.Combine(Application.streamingAssetsPath, "SettingsFile.json");
+    private bool settingsFileIsDirty = false;
+    private float dirtySettingsCheckTimer = 0;
     private void Awake()
     {
         if (instance == null)
@@ -33,24 +37,32 @@ public class SettingsManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        LoadSettingsFile();
     }
     void Start()
     {
         mainCanvas = GetComponentInChildren<Canvas>();
-
+        //Setup UI
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.onValueChanged.RemoveAllListeners();
             masterVolumeSlider.onValueChanged.AddListener(delegate { OnMasterVolumeChanged(); });
+            masterVolumeSlider.value = settingsFile.masterVolume;
         }
 
         if (sensitivityInputField != null)
         {
             sensitivityInputField.onValueChanged.RemoveAllListeners();
             sensitivityInputField.onValueChanged.AddListener(delegate { OnSensitivityChanged(); });
+            sensitivityInputField.text = $"{settingsFile.sensitivity:F4}";
         }
-            
 
+        if (usernameInputField != null)
+        {
+            usernameInputField.onValueChanged.RemoveAllListeners();
+            usernameInputField.onValueChanged.AddListener(delegate { OnUsernameChanged(); });
+            usernameInputField.text = $"{settingsFile.username}";
+        }
 
         if (exitMatchButton != null)
         {
@@ -91,25 +103,40 @@ public class SettingsManager : MonoBehaviour
             Cursor.visible = settingsOpen;
             Cursor.lockState = settingsOpen ? CursorLockMode.None : CursorLockMode.Locked; 
         }
+        dirtySettingsCheckTimer += Time.deltaTime;
+        if (settingsFileIsDirty && dirtySettingsCheckTimer>1f)//Check each second if settings have change and if so save them. This is to get around writing many times when each value is changed like a slider
+        {
+            settingsFileIsDirty = false;
+            dirtySettingsCheckTimer = 0;
+            WriteSettingsFile();
+        }
     }
     public void OnMasterVolumeChanged() {
-        masterVolume = Mathf.Clamp(masterVolumeSlider.value,0f,100f);
+        settingsFile.masterVolume = Mathf.Clamp(masterVolumeSlider.value,0f,100f);
         if (AudioManager.instance != null)
         {
-            AudioManager.instance.masterVolumeMultiplier = masterVolume;
+            AudioManager.instance.masterVolumeMultiplier = settingsFile.masterVolume;
         }
+        settingsFileIsDirty = true;
     }
     public void OnSensitivityChanged()
     {
         if (float.TryParse(sensitivityInputField.text, out float value))
         {
-            sensitivity = Mathf.Clamp(value,0f,1000f);
-            sensitivityInputField.text = $"{sensitivity:F4}";
+            settingsFile.sensitivity = Mathf.Clamp(value,0f,1000f);
+            sensitivityInputField.text = $"{settingsFile.sensitivity:F4}";
             if (isInGameScene)
             {
-                GameManager.instance.localPlayer.mouseSensitivty = sensitivity;
+                GameManager.instance.localPlayer.mouseSensitivty = settingsFile.sensitivity;
             }
+            settingsFileIsDirty = true;
         }       
+    }
+    public void OnUsernameChanged()
+    {
+        settingsFile.username = usernameInputField.text;
+        usernameInputField.text = $"{settingsFile.username}";
+        settingsFileIsDirty = true;
     }
     public void ExitMatch()
     {
@@ -126,27 +153,26 @@ public class SettingsManager : MonoBehaviour
         if (PhotonNetwork.InLobby) { PhotonNetwork.LeaveLobby(); }
         Application.Quit();
     }
-    public void LoadSettingsFile()//Pickup here
+    public void LoadSettingsFile()
     {
-        string path = Path.Combine(Application.streamingAssetsPath, "SettingsFile");
 
-        if (File.Exists(path))
+        if (File.Exists(settingsPath))
         {
-            string json = File.ReadAllText(path);
-            Debug.Log(json);
-
-            settingsFile = JsonUtility.FromJson<SettingsFile>(json);
+            string json = File.ReadAllText(settingsPath);
+            settingsFile = JsonUtility.FromJson<SettingsFile>(json);         
         }
-        else
-        {
-            Debug.LogError("JSON file not found: " + path);
-        }
+    }
+    public void WriteSettingsFile()
+    {
+        string json = JsonUtility.ToJson(settingsFile, true); // pretty print
+        File.WriteAllText(settingsPath, json);
+        Debug.Log("Wrote settings");
     }
 }
 [System.Serializable]
 public struct SettingsFile
 {
-    float sensitivity;
-    string username;
-    float masterVolume;
+    public float sensitivity;
+    public string username;
+    public float masterVolume;
 }

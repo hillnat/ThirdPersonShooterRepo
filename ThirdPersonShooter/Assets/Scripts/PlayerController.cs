@@ -14,6 +14,10 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private const float moveSpeed = 1600f;
     private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
     public float currentSpeed;
+    //[Header("Footsteps")]
+    public bool shouldPlayFootstep => ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
+    private float lastFootstepTime = 0f;
+    private float footstepDelay = 0.35f;
     //[Header("Camera")]
     public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
     private Camera myCamera;
@@ -43,7 +47,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private bool isWallRunning => isWallRunningLeft || isWallRunningRight;
     //[Header("Wall Jumping")]
     private const float wallJumpCheckDistance = 1f;
-    private const float wallJumpCheckOriginOffset = 0.5f;
+    private const float wallJumpCheckOriginOffset = 0.3f;
     private bool canWallJump = false;
     private const float wallJumpForce = 950f;
     //[Header("Mantling")]
@@ -61,6 +65,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public AudioClip jumpAudio;
     public AudioClip jump2Audio;
     public AudioClip painSounds;
+    public string footstepSoundsPath = "Player/Footsteps/";
+    [SerializeField]private AudioClip[] footsteps;
     //[Header("Networking")]
     private bool isMine = false;
     public PhotonView myView;
@@ -77,6 +83,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     
     private float baseColliderHeight = 0f;
     private int lastHitByViewId = int.MinValue;
+    private float lastPainSoundTime = 0f;
 
     public Weapon? GetWeapon()
     {
@@ -133,9 +140,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
         RefreshItemMesh();
         RefreshKdaText();
         ResetAllWeapons();
-        mouseSensitivty = SettingsManager.instance.sensitivity;
+        mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
         GameManager.instance.view.RPC(nameof(GameManager.RPC_RefreshPlayerList), RpcTarget.All);//Tell GM to update player list once we have spawned
-        
+        footsteps = Resources.LoadAll<AudioClip>("Audio/" + footstepSoundsPath);
     }
 
     void Update()
@@ -144,11 +151,17 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             HandleUI();
             HandleGroundAndWallChecks();
-            HandleMouseLook();
+            HandleCamera();
             HandleZoom();
+            
             if (!isDead)
             {
-                HandleInputs();
+                if (!SettingsManager.instance.settingsOpen)
+                {
+                    HandleInputs();
+                }
+                
+                HandleFootsteps();
             }
             else
             {
@@ -253,7 +266,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             if (hasMantlePoint && canMantle)
             {
-                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.3f, myView.ViewID);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, myView.ViewID);
                 canMantle = false;
                 rb.AddForce(Vector3.up * mantleForce);
                 anim.SetTrigger("Mantle");
@@ -262,7 +275,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             else if (canJump)
             {
                 rb.AddForce(Vector3.up * jumpForce);
-                AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.3f, myView.ViewID);
+                AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.15f, myView.ViewID);
 
                 Debug.Log("jump");
                 anim.SetTrigger("Jump");
@@ -276,7 +289,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
                 Debug.Log("walljump");
                 anim.SetTrigger("Jump");
-                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.3f, myView.ViewID);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, myView.ViewID);
 
             }
         }
@@ -319,7 +332,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (GetWeapon() != null) { anim.SetBool("Reloading", GetWeapon().GetIsReloading()); }
         else { anim.SetBool("Reloading", false); }
     }
-    private void HandleMouseLook()
+    private void HandleCamera()
     {
         cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, mouseLookXY.y, transform.eulerAngles.z);
@@ -365,8 +378,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (!isMine || isDead) { return; }
         health += delta;
-        if (delta < 0)
+        if (delta < 0 && GameManager.instance.time>lastPainSoundTime+0.1f)
         {
+            lastPainSoundTime = GameManager.instance.time;
             AudioManager.instance.PlaySound(true, painSounds, Vector3.zero, 0.7f, myView.ViewID);
         }
         if(health<=0) { Die(); }
@@ -421,6 +435,14 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             allWeapons[i].ammo = allWeapons[i].maxAmmo;
             allWeapons[i].currentRecoil = Vector2.zero;
+        }
+    }
+    private void HandleFootsteps()
+    {
+        if (shouldPlayFootstep && GameManager.instance.time > lastFootstepTime + footstepDelay)
+        {
+            lastFootstepTime = GameManager.instance.time;
+            AudioManager.instance.PlaySound(true, footsteps[Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
         }
     }
 }
