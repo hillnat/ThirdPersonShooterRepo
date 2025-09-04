@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
     public float currentSpeed;
     //[Header("Footsteps")]
-    public bool shouldPlayFootstep => ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
+    public bool shouldPlayFootstep => (isGrounded || isWallRunning) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
     private float lastFootstepTime = 0f;
     private float footstepDelay = 0.35f;
     //[Header("Camera")]

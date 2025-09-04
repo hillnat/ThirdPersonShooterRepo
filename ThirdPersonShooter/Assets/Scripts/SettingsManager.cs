@@ -1,10 +1,6 @@
 using Photon.Pun;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,6 +13,7 @@ public class SettingsManager : MonoBehaviour
     private Canvas mainCanvas;
     public bool settingsOpen = false;
     public Slider masterVolumeSlider;
+    public Slider musicVolumeSlider;
     
     public TMP_InputField sensitivityInputField;
     public TMP_InputField usernameInputField;
@@ -49,7 +46,12 @@ public class SettingsManager : MonoBehaviour
             masterVolumeSlider.onValueChanged.AddListener(delegate { OnMasterVolumeChanged(); });
             masterVolumeSlider.value = settingsFile.masterVolume;
         }
-
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.onValueChanged.RemoveAllListeners();
+            musicVolumeSlider.onValueChanged.AddListener(delegate { OnMusicVolumeChanged(); });
+            musicVolumeSlider.value = settingsFile.musicVolume;
+        }
         if (sensitivityInputField != null)
         {
             sensitivityInputField.onValueChanged.RemoveAllListeners();
@@ -112,10 +114,19 @@ public class SettingsManager : MonoBehaviour
         }
     }
     public void OnMasterVolumeChanged() {
-        settingsFile.masterVolume = Mathf.Clamp(masterVolumeSlider.value,0f,100f);
+        settingsFile.masterVolume = Mathf.Clamp(masterVolumeSlider.value,0f,1f);
         if (AudioManager.instance != null)
         {
             AudioManager.instance.masterVolumeMultiplier = settingsFile.masterVolume;
+        }
+        settingsFileIsDirty = true;
+    }
+    public void OnMusicVolumeChanged()
+    {
+        settingsFile.musicVolume = Mathf.Clamp(musicVolumeSlider.value, 0f, 1f);
+        if (AudioManager.instance != null)
+        {
+            //AudioManager.instance.masterVolumeMultiplier = settingsFile.masterVolume;
         }
         settingsFileIsDirty = true;
     }
@@ -175,4 +186,5 @@ public struct SettingsFile
     public float sensitivity;
     public string username;
     public float masterVolume;
+    public float musicVolume;
 }

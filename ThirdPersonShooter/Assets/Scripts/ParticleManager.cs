@@ -11,6 +11,7 @@ public class ParticleManager : MonoBehaviour
     private GameObject[] lineFxList;
     private Dictionary<GameObject, int> particleToIndex = new Dictionary<GameObject, int>();
     private Dictionary<GameObject, int> lineFxToIndex = new Dictionary<GameObject, int>();
+    public GameObject damageNumber;
 
     private void Awake()
     {
@@ -81,5 +82,10 @@ public class ParticleManager : MonoBehaviour
         LineRenderer lr = Instantiate(lineFxList[lineFxIndex], Vector3.zero, Quaternion.identity).gameObject.GetComponent<LineRenderer>();
         if (lr == null) { return; }
         lr.SetPositions(positions);
+    }
+    public void SpawnDamageNumber(Vector3 position, float number)
+    {
+        DamageNumber dm = Instantiate(damageNumber, position, Quaternion.identity).GetComponent<DamageNumber>();
+        dm.SetNumber(number);
     }
 }

@@ -960,6 +960,7 @@ MonoBehaviour:
   pelletsPerShot: 1
   yawSpread: 0
   pitchSpread: 0
+  maxRange: 1000
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 23
@@ -1117,6 +1118,7 @@ MonoBehaviour:
   pelletsPerShot: 10
   yawSpread: 2
   pitchSpread: 2
+  maxRange: 25
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 7
@@ -2529,6 +2531,7 @@ MonoBehaviour:
   pelletsPerShot: 1
   yawSpread: 0
   pitchSpread: 0
+  maxRange: 1000
   reloadStartTime: 0
   reloadDelay: 1.5
   damage: 35

@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   myView: {fileID: 0}
+  damageNumber: {fileID: 8500041459645476879, guid: 19b1dc69104746646bb1c7ed0c4faaa9, type: 3}
 --- !u!114 &7647826289217990335
 MonoBehaviour:
   m_ObjectHideFlags: 0

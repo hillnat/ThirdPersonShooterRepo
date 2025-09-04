@@ -20,8 +20,9 @@ public class Weapon : MonoBehaviour
     private float lastFiredTime = 0;
     public float fireDelay = 0.05f;
     public int pelletsPerShot = 1;
-    public int yawSpread = 0;
-    public int pitchSpread = 0;
+    public float yawSpread = 0;
+    public float pitchSpread = 0;
+    public float maxRange = 1000;
     private bool hasSpread => yawSpread!=0 && pitchSpread!=0;
     [Header("Reloading")]
     public float reloadStartTime = float.MinValue;
@@ -67,39 +68,54 @@ public class Weapon : MonoBehaviour
 
             Vector3 rotatedCamForward = 
                     Quaternion.AngleAxis(Random.Range(-yawSpread, yawSpread), Vector3.up) * 
-                    Quaternion.AngleAxis(Random.Range(-pitchSpread, pitchSpread), Vector3.right) *
-                    cameraForward;
-            bool cameraRaySuccess = Physics.Raycast(cameraOrigin, hasSpread ? rotatedCamForward : cameraForward, out RaycastHit hit1, 999);//Camera ray
-            Vector3 muzzleDirection = (hit1.point - muzzlePosition).normalized;
-            bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, 999);//Muzzle ray
+                    Quaternion.AngleAxis(Random.Range(-pitchSpread, pitchSpread), myPc.transform.right) *
+                    cameraForward;//Calculate spread
+            Vector3 camRayDirection = hasSpread ? rotatedCamForward : cameraForward;//If we have spread use it
+            bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Camera ray
 
-            Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
-            Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
-
-            ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, hit2.point });
-
+            //Muzzle direction is from the muzzle to the hit point, unless it didnt hit, then to the camera ray end point (so particles still spawn at the end of the ray)
+            Vector3 muzzleDirection = 
+                (hit1.point - 
+                muzzlePosition).normalized;
 
 
-            bool hitPlayer = false;//Not known yet
-            bool hitAnything = false;//Not known yet
-            if (muzzleRaySuccess && cameraRaySuccess && (hit1.transform == hit2.transform))
+
+            ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess? cameraOrigin+camRayDirection*maxRange : (muzzlePosition + muzzleDirection * maxRange) });
+
+            if (cameraRaySuccess)
             {
-                if (hit2.transform.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
+                bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
+
+                Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
+                Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
+
+
+
+                float t = hit2.distance / maxRange;
+                float finalDamage = Mathf.Lerp(damage, 0, t);
+                Debug.Log($"Pellet collided and wouldve dealt {finalDamage} dmg");
+                bool hitPlayer = false;//Not known yet
+                bool hitAnything = false;//Not known yet
+                if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
                 {
-                    hitPlayer = true;
-                    if (!hitPc.isDead)
+                    if (hit2.transform.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
                     {
-                        hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -damage);
-                        hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
+                        hitPlayer = true;
+                        if (!hitPc.isDead)
+                        {
+                            hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
+                            hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
+                            ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
+                        }
                     }
+                    hitAnything = true;
                 }
-                hitAnything = true;
-            }
-            if (hitPlayer)
-            {
-                ParticleManager.instance.PlayParticle(true, goreParticles, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
-            }
-            else if (hitAnything) { ParticleManager.instance.PlayParticle(true, impactParticles, hit2.point, Quaternion.Euler(hit2.normal)); }//Spawn dust
+                if (hitPlayer)
+                {
+                    ParticleManager.instance.PlayParticle(true, goreParticles, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
+                }
+                else if (hitAnything) { ParticleManager.instance.PlayParticle(true, impactParticles, hit2.point, Quaternion.Euler(hit2.normal)); }//Spawn dust
+            }        
         }    
     }
     public void StartReloading()
