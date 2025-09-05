@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour, IPunObservable
 {
@@ -62,6 +63,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private int heldItem = 0;
     [Header("UI")]
     public TMP_Text ammoText;
+    public Image reloadIndicator;
     public TMP_Text healthText;
     public TMP_Text kdaText;
     [Header("Audio")]
@@ -218,9 +220,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (GetWeapon() != null)
         {
-            ammoText.text = GetWeapon().GetIsReloading() ? "" + GetWeapon().GetReloadTimeLeft() : "" + GetWeapon().ammo;
+            Weapon weapon = GetWeapon();
+            ammoText.text = $"{weapon.ammo}";
 
-            if (GetWeapon().currentRecoil != Vector2.zero) { AddMouseLook(GetWeapon().currentRecoil); }
+            if (weapon.GetIsReloading())
+            {
+                if(!reloadIndicator.enabled){reloadIndicator.enabled = true;}
+                reloadIndicator.fillAmount = Mathf.Clamp01(1f-Mathf.InverseLerp(weapon.reloadStartTime, weapon.reloadStartTime + weapon.reloadDelay, GameManager.instance.time));
+            }
+            else
+            {
+                reloadIndicator.enabled = false;
+            }
+            if (weapon.currentRecoil != Vector2.zero) { AddMouseLook(GetWeapon().currentRecoil); }
         }
         else { ammoText.text = ""; }
 
@@ -304,36 +316,45 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             ChangeWeapon(heldItem + (int)InputManager.instance.scrollDelta.y);
         }
-        if (InputManager.instance.mouse1 && !isChangingWeapon)
+        if(GetWeapon()&&!isChangingWeapon&& heldItem != 0)
         {
-            if (heldItem == 0) {/* RPC_ChangeHealth(-101f);*/ return; }
-
-            if (GetWeapon() != null && GetWeapon().GetCanFire())
+            Weapon weapon = GetWeapon();
+            if (weapon.GetCanFire())
             {
-                anim.SetTrigger("Fire");
-                GetWeapon().Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
+                if (weapon.isFullAuto)
+                {
+                    if (InputManager.instance.mouse1Hold)
+                    {
+                        anim.SetTrigger("Fire");
+                        weapon.Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
+                    }
+                }
+                else
+                {
+                    if (InputManager.instance.mouse1)
+                    {
+                        anim.SetTrigger("Fire");
+                        weapon.Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
+                    }
+                }
+            }
+           
+            if (InputManager.instance.reload && weapon.GetCanReload())
+            {
+                weapon.StartReloading();
             }
         }
-        if (InputManager.instance.reload)
-        {
-            Weapon currentWeapon = GetWeapon();
-            if (currentWeapon != null && currentWeapon.GetCanReload())
-            {
-                currentWeapon.StartReloading();
-            }
-        }
-        if (InputManager.instance.alpha1)
-        {
-            ChangeWeapon(1);   
-        }
-        if (InputManager.instance.alpha2)
-        {
-            ChangeWeapon(2);
-        }
-        if (InputManager.instance.alpha3)
-        {
-            ChangeWeapon(3);
-        }
+        
+        if (InputManager.instance.alpha1) { ChangeWeapon(1); }
+        if (InputManager.instance.alpha2) { ChangeWeapon(2); }
+        if (InputManager.instance.alpha3) { ChangeWeapon(3); }
+        if (InputManager.instance.alpha4) { ChangeWeapon(4); }
+        if (InputManager.instance.alpha5) { ChangeWeapon(5); }
+        if (InputManager.instance.alpha6) { ChangeWeapon(6); }
+        if (InputManager.instance.alpha7) { ChangeWeapon(7); }
+        if (InputManager.instance.alpha8) { ChangeWeapon(8); }
+        if (InputManager.instance.alpha9) { ChangeWeapon(9); }
+        if (InputManager.instance.alpha0) { ChangeWeapon(10); }
     }
     private void ChangeWeapon(int newHeldItem)
     {

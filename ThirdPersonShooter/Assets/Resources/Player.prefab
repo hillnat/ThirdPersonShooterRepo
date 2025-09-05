@@ -307,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentSpeed: 0
-  cameraOffset: {x: 0.5, y: 0.5, z: -0.8}
+  cameraOffset: {x: 0.51, y: 0.58, z: -0.62}
   cameraParent: {fileID: 6744255154447774039}
   mouseSensitivty: 25
   allWeapons:
@@ -315,6 +315,7 @@ MonoBehaviour:
   - {fileID: 6300326976300325172}
   - {fileID: 3429899314460814808}
   ammoText: {fileID: 7197509368289362701}
+  reloadIndicator: {fileID: 6622792267238497527}
   healthText: {fileID: 785035224550910475}
   kdaText: {fileID: 1836203702789870301}
   jumpAudio: {fileID: 8300000, guid: a061fc05aacc6f742a52b8048e9797a9, type: 3}
@@ -794,6 +795,7 @@ RectTransform:
   - {fileID: 9174633144751349246}
   - {fileID: 2361654538304554091}
   - {fileID: 7175583785774145046}
+  - {fileID: 221735940050405327}
   m_Father: {fileID: 8598455125705054177}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -864,6 +866,81 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &9075530371865400056
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 221735940050405327}
+  - component: {fileID: 5740749326640709511}
+  - component: {fileID: 6622792267238497527}
+  m_Layer: 5
+  m_Name: ReloadIndicator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &221735940050405327
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9075530371865400056}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8383067242914778738}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -144.2}
+  m_SizeDelta: {x: 50, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &5740749326640709511
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9075530371865400056}
+  m_CullTransparentMesh: 1
+--- !u!114 &6622792267238497527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9075530371865400056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 3
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 0
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1001 &1013134763548765460
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -951,21 +1028,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: M4A1
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: 0.175, y: 0.25}
-  yRecoilMinMax: {x: 0.03, y: 0.045}
-  pingPongRecoil: 1
-  ammo: 0
+  xRecoilMinMax: {x: -0.05, y: 0.05}
+  yRecoilMinMax: {x: 0.1, y: 0.2}
+  recoilFadeMultiplier: 12
+  pingPongRecoil: 0
+  ammo: 30
   maxAmmo: 30
-  fireDelay: 0.05
+  fireDelay: 0.115
   pelletsPerShot: 1
-  yawSpread: 0
-  pitchSpread: 0
+  yawSpread: 0.15
+  pitchSpread: 0.15
   maxRange: 1000
+  isFullAuto: 1
   reloadStartTime: 0
   reloadDelay: 1.5
-  damage: 23
+  isShotgunReload: 0
+  damage: 17
   fireSoundsPath: Rifle/Fire/
   reloadSoundsPath: Rifle/Reload/
+  fireAudioVolumeModifier: 0.75
+  reloadAudioVolumeModifier: 0.85
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
@@ -1111,19 +1193,24 @@ MonoBehaviour:
   currentRecoil: {x: 0, y: 0}
   xRecoilMinMax: {x: -0.7, y: 0.7}
   yRecoilMinMax: {x: 0.5, y: 0.7}
+  recoilFadeMultiplier: 20
   pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 5
-  fireDelay: 0.5
+  maxAmmo: 4
+  fireDelay: 0.2
   pelletsPerShot: 10
-  yawSpread: 2
-  pitchSpread: 2
-  maxRange: 25
+  yawSpread: 3
+  pitchSpread: 3
+  maxRange: 15
+  isFullAuto: 0
   reloadStartTime: 0
-  reloadDelay: 1.5
+  reloadDelay: 0.25
+  isShotgunReload: 1
   damage: 7
   fireSoundsPath: Shotgun/Fire/
   reloadSoundsPath: Shotgun/Reload/
+  fireAudioVolumeModifier: 1.5
+  reloadAudioVolumeModifier: 1
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
@@ -2524,6 +2611,7 @@ MonoBehaviour:
   currentRecoil: {x: 0, y: 0}
   xRecoilMinMax: {x: -0.2, y: 0.2}
   yRecoilMinMax: {x: 0.1, y: 0.2}
+  recoilFadeMultiplier: 20
   pingPongRecoil: 0
   ammo: 0
   maxAmmo: 8
@@ -2532,11 +2620,15 @@ MonoBehaviour:
   yawSpread: 0
   pitchSpread: 0
   maxRange: 1000
+  isFullAuto: 0
   reloadStartTime: 0
   reloadDelay: 1.5
+  isShotgunReload: 0
   damage: 35
   fireSoundsPath: Pistol/Fire
   reloadSoundsPath: Pistol/Reload
+  fireAudioVolumeModifier: 0.75
+  reloadAudioVolumeModifier: 1
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}

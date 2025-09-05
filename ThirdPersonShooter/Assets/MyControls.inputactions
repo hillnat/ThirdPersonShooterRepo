@@ -96,6 +96,69 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Alpha4",
+                    "type": "Button",
+                    "id": "4d2ca319-a41f-48b1-80ad-5b5fbecbe387",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha5",
+                    "type": "Button",
+                    "id": "d58b9571-181f-4b42-b19b-7c5d95cfa0e4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha6",
+                    "type": "Button",
+                    "id": "2a9e94bc-b710-408e-9f68-f1b98bb30778",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha7",
+                    "type": "Button",
+                    "id": "7090bbd9-632b-4e81-bcba-c10b761a9c50",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha8",
+                    "type": "Button",
+                    "id": "62c89f4a-56ca-41e5-911c-a94cc78d9a8c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha9",
+                    "type": "Button",
+                    "id": "426959d7-a4ec-4fa6-a914-a337e4be003e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Alpha0",
+                    "type": "Button",
+                    "id": "3cb88448-f77b-4ff8-a307-ca3760c38a9d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "MousePosition",
                     "type": "Value",
                     "id": "c49c18d6-c21a-422e-83b6-732adecb8dc5",
@@ -279,6 +342,83 @@
                     "processors": "",
                     "groups": "",
                     "action": "Alpha3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "10470bfa-d572-41d1-be4a-844e18281488",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6549a41a-3c79-48ec-be2d-64d3d04c6489",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha5",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2bbdab05-ae3d-4d88-9a3e-5e2ffb41fe59",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha6",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "72a231e2-c43d-46c6-9a2f-7389f6be8325",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha7",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "efe4aadf-ef92-4413-a9fc-fd1d918e4244",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha8",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a265ef0a-8d05-47e7-91dd-e9e50e73d3e8",
+                    "path": "<Keyboard>/9",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha9",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d15c8ff9-fa68-487e-bd45-992f4880ebe7",
+                    "path": "<Keyboard>/0",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Alpha0",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

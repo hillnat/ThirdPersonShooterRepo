@@ -12,6 +12,7 @@ public class Weapon : MonoBehaviour
     public Vector2 currentRecoil = Vector2.zero;
     public Vector2 xRecoilMinMax = Vector2.zero;
     public Vector2 yRecoilMinMax = Vector2.zero;
+    public float recoilFadeMultiplier = 20f;//Recoil takes 1sec/this to return to 0
     public bool pingPongRecoil = false;//Recoil always goes left or right based on if ammo is even or odd. Note you can use yRecoilMax.x as a minimum range if this is true, rather than it being the negative range
     [Header("Ammo")]
     public int ammo = 0;
@@ -23,11 +24,13 @@ public class Weapon : MonoBehaviour
     public float yawSpread = 0;
     public float pitchSpread = 0;
     public float maxRange = 1000;
+    public bool isFullAuto = false;
     private bool hasSpread => yawSpread!=0 && pitchSpread!=0;
     [Header("Reloading")]
     public float reloadStartTime = float.MinValue;
     public float reloadDelay = 1.5f;
     private bool wasReloading = false;
+    public bool isShotgunReload = false;
     [Header("Damage")]
     public float damage = 50f;
     [Header("Sound")]
@@ -35,6 +38,8 @@ public class Weapon : MonoBehaviour
     public string reloadSoundsPath = "Weapon/Reload/";
     private AudioClip[] fireSounds;
     private AudioClip[] reloadSounds;
+    public float fireAudioVolumeModifier = 1f;
+    public float reloadAudioVolumeModifier = 1f;
     [Header("Particles")]
     public GameObject impactParticles;
     public GameObject goreParticles;
@@ -48,11 +53,11 @@ public class Weapon : MonoBehaviour
     public bool GetIsReloading() { return (GameManager.instance.time < reloadStartTime + reloadDelay); }
     public float GetReloadTimeLeft() { return GetIsReloading() ? ((int)(((reloadStartTime + reloadDelay) - GameManager.instance.time) * 10f) / 10f) : 0f; }
     public bool GetCanReload() { return !GetIsReloading() && ammo != maxAmmo; }
-    public bool GetCanFire() { return GameManager.instance.time > lastFiredTime + fireDelay && !GetIsReloading() && ammo>0; }
+    public bool GetCanFire() { return GameManager.instance.time > lastFiredTime + fireDelay && ammo>0; }
     public void Fire(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
     {
         if (!GetCanFire()) { return; }
-
+        if (GetIsReloading()) { CancelReload(); }
         /*
          */
         ammo--;
@@ -61,7 +66,7 @@ public class Weapon : MonoBehaviour
         currentRecoil += GetRandomRecoil();
         //Play sound
         AudioClip fireAudio = GetRandomFireSound();
-        if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, Vector3.zero, 1f, myPc.myView.ViewID); }
+        if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, Vector3.zero, fireAudioVolumeModifier, myPc.myView.ViewID); }
         for (int i = 0; i < pelletsPerShot; i++)
         {
 
@@ -78,13 +83,13 @@ public class Weapon : MonoBehaviour
                 (hit1.point - 
                 muzzlePosition).normalized;
 
+            bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
 
+            ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
 
-            ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess? cameraOrigin+camRayDirection*maxRange : (muzzlePosition + muzzleDirection * maxRange) });
 
             if (cameraRaySuccess)
             {
-                bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
 
                 Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
                 Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
@@ -125,7 +130,7 @@ public class Weapon : MonoBehaviour
         reloadStartTime = GameManager.instance.time;
 
         AudioClip reloadAudio = GetRandomReloadSound();
-        if (reloadAudio != null) { AudioManager.instance.PlaySound(true, reloadAudio, Vector3.zero, 1f, myPc.myView.ViewID); }
+        if (reloadAudio != null) { AudioManager.instance.PlaySound(true, reloadAudio, Vector3.zero, reloadAudioVolumeModifier, myPc.myView.ViewID); }
         Debug.Log("reload started");
     }
     public void CancelReload()
@@ -148,15 +153,28 @@ public class Weapon : MonoBehaviour
     }
     private void Update()
     {
-        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.deltaTime*20f);
+        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.deltaTime*recoilFadeMultiplier);
         if ((currentRecoil.x > 0 && currentRecoil.x < 0.01f) || (currentRecoil.x < 0 && currentRecoil.x > -0.01f)) { currentRecoil.x = 0; }
         if ((currentRecoil.y > 0 && currentRecoil.y < 0.01f) || (currentRecoil.y < 0 && currentRecoil.y > -0.01f)) { currentRecoil.y = 0; }
         
         //If we were reloading last frame but arent anymore, the reload has finished
         if (wasReloading && !GetIsReloading()) {
-            ammo = maxAmmo;
+            if (isShotgunReload)
+            {
+                ammo++;
+            }
+            else
+            {
+                ammo = maxAmmo;
+            }
+            
             reloadStartTime = float.MinValue;
             Debug.Log("reload complete");
+            if (isShotgunReload && GetCanReload())
+            {
+                StartReloading();
+                Debug.Log("Shotgun reload");
+            }
         }
     }
     private void LateUpdate()
