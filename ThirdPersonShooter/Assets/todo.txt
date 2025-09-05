@@ -1,7 +1,9 @@
 Scoreboard
 Kill notifs
-
-damage falloff, single shell reload
+single shell reload
+damage numbers
+crosshairs
+camera looks at killer
 
 Long term:
 new maps

@@ -12,6 +12,9 @@ public class InputManager : MonoBehaviour
     public bool mouse1Hold = false;
     public bool mouse2Hold = false;
     public bool openSettings = false;
+    public bool alpha1 = false;
+    public bool alpha2 = false;
+    public bool alpha3 = false;
     public Vector2 mousePosition = Vector2.zero;
     public Vector2 mouseDelta = Vector2.zero;
     public Vector2 scrollDelta = Vector2.zero;
@@ -34,6 +37,9 @@ public class InputManager : MonoBehaviour
         if (jump) { jump = false; }
         if (reload) { reload = false; }
         if (openSettings) { openSettings = false; }
+        if (alpha1) { alpha1 = false; }
+        if (alpha2) { alpha2 = false; }
+        if (alpha3) { alpha3 = false; }
     }
     private void Update()
     {
@@ -52,6 +58,9 @@ public class InputManager : MonoBehaviour
 
     private void OnMouse1() { mouse1 = true; }
     private void OnOpenSettings() { openSettings = true; }
+    private void OnAlpha1() { alpha1 = true; }
+    private void OnAlpha2() { alpha2 = true; }
+    private void OnAlpha3() { alpha3 = true; }
     private void OnMouse1Hold(InputValue iv) { mouse1Hold = iv.Get<float>() > 0; }
     private void OnMouse2Hold(InputValue iv) { mouse2Hold = iv.Get<float>() > 0; }
 }

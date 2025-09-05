@@ -48,8 +48,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Wall Jumping")]
     private const float wallJumpCheckDistance = 1f;
     private const float wallJumpCheckOriginOffset = 0.3f;
-    private bool canWallJump = false;
+    private bool canWallJump => isTouchingWall && wallJumpDelayElapsed;
     private const float wallJumpForce = 950f;
+    private float lastWallJumpTime = float.MinValue;
+    private const float wallJumpDelay = 0.5f;
+    private bool wallJumpDelayElapsed => GameManager.instance.time > lastWallJumpTime + wallJumpDelay;
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
     private bool canMantle = true;
@@ -84,6 +87,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private float baseColliderHeight = 0f;
     private int lastHitByViewId = int.MinValue;
     private float lastPainSoundTime = 0f;
+    private float lastChangeWeaponTime = float.MinValue;
+    private bool isChangingWeapon => GameManager.instance.time < lastChangeWeaponTime + 0.2f;
 
     public Weapon? GetWeapon()
     {
@@ -198,7 +203,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
         isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and ttrying to move into the wall
         isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
 
-        if (!canWallJump && isGrounded) { canWallJump = true; }
+        //if (!canWallJump && isGrounded) { canWallJump = true; }
+        //if (!canWallJump && isTouchingWall) { canWallJump = true; }
         if (!canMantle && isGrounded) { canMantle = true; }
         if (isGrounded) { currentGroundNormal = groundHit.normal; }
         else { currentGroundNormal = Vector3.zero; }
@@ -282,7 +288,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
             }
             else if (isTouchingWall && canWallJump)
             {
-                canWallJump = false;
+                //canWallJump = false;
+                lastWallJumpTime = GameManager.instance.time;
                 rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce);
                 rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
                 rb.AddForce(Vector3.up * jumpForce * 1.3f);
@@ -295,13 +302,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         if (InputManager.instance.scrollDelta != Vector2.zero)//change  item
         {
-            Weapon currentWeapon = GetWeapon();
-            if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
-            heldItem += (int)InputManager.instance.scrollDelta.y;
-            heldItem = Mathf.Clamp(heldItem, 0, allWeapons.Count);
-            RefreshItemMesh();
+            ChangeWeapon(heldItem + (int)InputManager.instance.scrollDelta.y);
         }
-        if (InputManager.instance.mouse1)
+        if (InputManager.instance.mouse1 && !isChangingWeapon)
         {
             if (heldItem == 0) {/* RPC_ChangeHealth(-101f);*/ return; }
 
@@ -319,6 +322,27 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 currentWeapon.StartReloading();
             }
         }
+        if (InputManager.instance.alpha1)
+        {
+            ChangeWeapon(1);   
+        }
+        if (InputManager.instance.alpha2)
+        {
+            ChangeWeapon(2);
+        }
+        if (InputManager.instance.alpha3)
+        {
+            ChangeWeapon(3);
+        }
+    }
+    private void ChangeWeapon(int newHeldItem)
+    {
+        lastChangeWeaponTime = GameManager.instance.time;
+        Weapon currentWeapon = GetWeapon();
+        if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
+        heldItem = newHeldItem;
+        heldItem = Mathf.Clamp(heldItem, 0, allWeapons.Count);
+        RefreshItemMesh();
     }
     private void HandleAnimatorStates()
     {
