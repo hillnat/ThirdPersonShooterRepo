@@ -66,7 +66,7 @@ public class Weapon : MonoBehaviour
         currentRecoil += GetRandomRecoil();
         //Play sound
         AudioClip fireAudio = GetRandomFireSound();
-        if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, Vector3.zero, fireAudioVolumeModifier, myPc.myView.ViewID); }
+        if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, muzzlePosition, fireAudioVolumeModifier, myPc.myView.ViewID); }
         for (int i = 0; i < pelletsPerShot; i++)
         {
 
