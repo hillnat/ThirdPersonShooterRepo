@@ -3,11 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+public enum EWeapons { M4A1, M1911, Shotgun, Tec9 }
 
 public class Weapon : MonoBehaviour
 {
+
     private PlayerController myPc;
     public string weaponName = "Weapon";
+    public EWeapons thisWeapon;
     [Header("Recoil")]
     public Vector2 currentRecoil = Vector2.zero;
     public Vector2 xRecoilMinMax = Vector2.zero;
@@ -58,6 +61,7 @@ public class Weapon : MonoBehaviour
     {
         if (!GetCanFire()) { return; }
         if (GetIsReloading()) { CancelReload(); }
+        
         /*
          */
         ammo--;
@@ -138,6 +142,11 @@ public class Weapon : MonoBehaviour
         wasReloading = false;
         reloadStartTime = float.MinValue;
         Debug.Log("reload cancelled");
+    }
+    public void ResetWeapon()
+    {
+        ammo = maxAmmo;
+        currentRecoil = Vector2.zero;
     }
     #region Unity Callbacks
     private void Awake()

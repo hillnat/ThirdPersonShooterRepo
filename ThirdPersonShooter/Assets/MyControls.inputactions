@@ -159,6 +159,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "BuyMenu",
+                    "type": "Button",
+                    "id": "93e9df4d-7c5d-4e32-b466-9e5ee530a342",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "MousePosition",
                     "type": "Value",
                     "id": "c49c18d6-c21a-422e-83b6-732adecb8dc5",
@@ -419,6 +428,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Alpha0",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ed029c24-543a-4cb3-bbbe-ca437bbc95d5",
+                    "path": "<Keyboard>/b",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BuyMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

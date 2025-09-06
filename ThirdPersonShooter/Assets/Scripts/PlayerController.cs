@@ -1,5 +1,5 @@
 using Photon.Pun;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -23,8 +23,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
     private Camera myCamera;
     public Transform cameraParent;
-    private float baseFov = 90f;
-    private float zoomFov = 60f;
+    [SerializeField] private float baseFov = 90f;
+    [SerializeField] private float zoomFov = 60f;
     private bool isAiming = false;
     //[Header("Mouse Look")]
     private Vector2 mouseLookXY = Vector2.zero;
@@ -60,7 +60,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private const float mantleForce = 900f;
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
-    private int heldItem = 0;
+    [SerializeField] private int heldItem = 0;
+    private bool isChangingWeapon => GameManager.instance.time < lastChangeWeaponTime + 0.2f;
+    public List<Weapon> currentWeapons = new List<Weapon>();
+    public int maxWeapons = 2;
+    public bool isInventoryFull => currentWeapons.Count >= maxWeapons;
     [Header("UI")]
     public TMP_Text ammoText;
     public Image reloadIndicator;
@@ -90,15 +94,48 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private int lastHitByViewId = int.MinValue;
     private float lastPainSoundTime = 0f;
     private float lastChangeWeaponTime = float.MinValue;
-    private bool isChangingWeapon => GameManager.instance.time < lastChangeWeaponTime + 0.2f;
-
+    
     public Weapon? GetWeapon()
     {
-        if (heldItem == 0) { return null; }
-        else { return allWeapons[heldItem - 1]; }
+        if(currentWeapons.Count==0) { return null; }
+        if(heldItem==-1) { return null; }
+        if(heldItem >= currentWeapons.Count) { return null; }
+        return currentWeapons[heldItem];
     }
-
-
+    public void AddWeapon(EWeapons weapon)
+    {
+        Weapon newWeapon = allWeapons[(int)weapon];
+        if (!currentWeapons.Contains(newWeapon))
+        {
+            currentWeapons.Add(newWeapon);
+            Debug.Log($"Added weapon {newWeapon.name} / {weapon}");
+            newWeapon.ResetWeapon();
+        }
+        RefreshWeaponMeshes();
+    }
+    public void RemoveWeapon(EWeapons weapon)
+    {
+        Weapon newWeapon = allWeapons[(int)weapon];
+        if (currentWeapons.Contains(newWeapon))
+        {
+            currentWeapons.Remove(newWeapon);
+            Debug.Log($"Removed weapon {newWeapon.name} / {weapon}");
+        }
+        RefreshWeaponMeshes();
+    }
+    public bool HasWeapon(EWeapons weapon)
+    {
+        return currentWeapons.Contains(allWeapons[(int)weapon]);
+    }
+    private void ChangeWeapon(int newHeldItem)
+    {
+        lastChangeWeaponTime = GameManager.instance.time;
+        Weapon currentWeapon = GetWeapon();
+        if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
+        heldItem = newHeldItem;
+        heldItem = Mathf.Clamp(heldItem, 0, currentWeapons.Count - 1);
+        RefreshWeaponMeshes();
+    }
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (isMine)
@@ -112,7 +149,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             heldItem = (int)stream.ReceiveNext();
             if (temp != heldItem)
             {
-                RefreshItemMesh();
+                RefreshWeaponMeshes();
             }
             cameraParent.transform.eulerAngles = (Vector3)stream.ReceiveNext();
         }
@@ -126,6 +163,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
         col = GetComponent<CapsuleCollider>();
         baseColliderHeight=col.height;
         isMine = myView.IsMine;
+        currentWeapons.Clear();
+        heldItem = 0;
         if (isMine)
         {
             myCamera = Camera.main;
@@ -144,7 +183,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     void Start()
     {
         health = 100;
-        RefreshItemMesh();
+        RefreshWeaponMeshes();
         RefreshKdaText();
         ResetAllWeapons();
         mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
@@ -269,18 +308,17 @@ public class PlayerController : MonoBehaviour, IPunObservable
     }
     private void HandleMovement()
     {
-        if (InputManager.instance.wasdInputs != Vector2.zero)
+        if (InputManager.instance.wasdInputs != Vector2.zero && !BuyMenu.instance.isMenuOpen)
         {
             rb.AddForce(Vector3.ProjectOnPlane(transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * curMoveSpeedMod * Time.fixedDeltaTime, currentGroundNormal));
             //Only apply sideways forces if not wall running. 
             if (InputManager.instance.wasdInputs.x > 0 && !isWallRunningRight) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
             else if (InputManager.instance.wasdInputs.x < 0 && !isWallRunningLeft) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
-
         }
     }
     private void HandleInputs()
     {
-        if (InputManager.instance.jump)
+        if (InputManager.instance.jump && !BuyMenu.instance.isMenuOpen)
         {
             if (hasMantlePoint && canMantle)
             {
@@ -316,8 +354,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             ChangeWeapon(heldItem + (int)InputManager.instance.scrollDelta.y);
         }
-        if(GetWeapon()&&!isChangingWeapon&& heldItem != 0)
+        if(GetWeapon() && !isChangingWeapon)
         {
+            if (BuyMenu.instance.isMenuOpen) { return; }
             Weapon weapon = GetWeapon();
             if (weapon.GetCanFire())
             {
@@ -337,52 +376,48 @@ public class PlayerController : MonoBehaviour, IPunObservable
                         weapon.Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
                     }
                 }
-            }
-           
+            }     
             if (InputManager.instance.reload && weapon.GetCanReload())
             {
                 weapon.StartReloading();
             }
         }
         
-        if (InputManager.instance.alpha1) { ChangeWeapon(1); }
-        if (InputManager.instance.alpha2) { ChangeWeapon(2); }
-        if (InputManager.instance.alpha3) { ChangeWeapon(3); }
-        if (InputManager.instance.alpha4) { ChangeWeapon(4); }
-        if (InputManager.instance.alpha5) { ChangeWeapon(5); }
-        if (InputManager.instance.alpha6) { ChangeWeapon(6); }
-        if (InputManager.instance.alpha7) { ChangeWeapon(7); }
-        if (InputManager.instance.alpha8) { ChangeWeapon(8); }
-        if (InputManager.instance.alpha9) { ChangeWeapon(9); }
-        if (InputManager.instance.alpha0) { ChangeWeapon(10); }
+        if (InputManager.instance.alpha1) { ChangeWeapon(0); }
+        if (InputManager.instance.alpha2) { ChangeWeapon(1); }
+        if (InputManager.instance.alpha3) { ChangeWeapon(2); }
+        if (InputManager.instance.alpha4) { ChangeWeapon(3); }
+        if (InputManager.instance.alpha5) { ChangeWeapon(4); }
+        if (InputManager.instance.alpha6) { ChangeWeapon(5); }
+        if (InputManager.instance.alpha7) { ChangeWeapon(6); }
+        if (InputManager.instance.alpha8) { ChangeWeapon(7); }
+        if (InputManager.instance.alpha9) { ChangeWeapon(8); }
+        if (InputManager.instance.alpha0) { ChangeWeapon(9); }
     }
-    private void ChangeWeapon(int newHeldItem)
-    {
-        lastChangeWeaponTime = GameManager.instance.time;
-        Weapon currentWeapon = GetWeapon();
-        if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
-        heldItem = newHeldItem;
-        heldItem = Mathf.Clamp(heldItem, 0, allWeapons.Count);
-        RefreshItemMesh();
-    }
+    
     private void HandleAnimatorStates()
     {
         anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
         anim.SetInteger("MovementZ", Mathf.RoundToInt(InputManager.instance.wasdInputs.y));
-        anim.SetInteger("HeldItem", heldItem);
         anim.SetBool("Grounded", isGrounded);
         anim.SetBool("WallRunningRight", isWallRunningRight);
         anim.SetBool("WallRunningLeft", isWallRunningLeft);
         anim.SetBool("Dead", isDead);
-        if (GetWeapon() != null) { anim.SetBool("Reloading", GetWeapon().GetIsReloading()); }
-        else { anim.SetBool("Reloading", false); }
+        if (GetWeapon() != null) { 
+            anim.SetBool("Reloading", GetWeapon().GetIsReloading());
+            anim.SetInteger("HeldItem", (int)GetWeapon().thisWeapon+1);
+        }
+        else { 
+            anim.SetBool("Reloading", false);
+            anim.SetInteger("HeldItem", 0);
+        }
     }
     private void HandleCamera()
     {
         cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, mouseLookXY.y, transform.eulerAngles.z);
 
-        if (!SettingsManager.instance.settingsOpen && InputManager.instance.mouseDelta != Vector2.zero)//Apply mouse rotations
+        if (!BuyMenu.instance.isMenuOpen && !SettingsManager.instance.settingsOpen && InputManager.instance.mouseDelta != Vector2.zero)//Apply mouse rotations
         {
             AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
         }  
@@ -405,7 +440,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (mouseLookXY.y > 360f) { mouseLookXY.y -= 360f; }
         if (mouseLookXY.y < -360f) { mouseLookXY.y += 360f; }
     }
-    public void RefreshItemMesh()
+    public void RefreshWeaponMeshes()
     {
         for (int i = 0; i < allWeapons.Count; i++)
         {
@@ -478,8 +513,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         for (int i = 0; i < allWeapons.Count; i++)
         {
-            allWeapons[i].ammo = allWeapons[i].maxAmmo;
-            allWeapons[i].currentRecoil = Vector2.zero;
+            allWeapons[i].ResetWeapon();
         }
     }
     private void HandleFootsteps()
@@ -487,7 +521,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (shouldPlayFootstep && GameManager.instance.time > lastFootstepTime + footstepDelay)
         {
             lastFootstepTime = GameManager.instance.time;
-            AudioManager.instance.PlaySound(true, footsteps[Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
+            AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
         }
     }
 }
