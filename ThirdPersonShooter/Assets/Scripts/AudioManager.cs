@@ -72,7 +72,7 @@ public class AudioManager : MonoBehaviour
         }
         else { myEmitter.transform.position = position; }
 
-        Debug.Log("Spawned sound " + clipList[clipIndex].name);
+        //Debug.Log("Spawned sound " + clipList[clipIndex].name);
     }
     private AudioEmitter? GetFreeEmitter()
     {

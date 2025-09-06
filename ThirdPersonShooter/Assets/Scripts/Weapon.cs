@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-public enum EWeapons { M4A1, M1911, Shotgun, Tec9 }
+public enum EWeapons { M4A1, M1911, Shotgun, Tec9, Sniper }
 
 public class Weapon : MonoBehaviour
 {
@@ -11,6 +11,7 @@ public class Weapon : MonoBehaviour
     private PlayerController myPc;
     public string weaponName = "Weapon";
     public EWeapons thisWeapon;
+    public float zoomFov = 60f;
     [Header("Recoil")]
     public Vector2 currentRecoil = Vector2.zero;
     public Vector2 xRecoilMinMax = Vector2.zero;
@@ -36,9 +37,9 @@ public class Weapon : MonoBehaviour
     public bool isShotgunReload = false;
     [Header("Damage")]
     public float damage = 50f;
-    [Header("Sound")]
-    public string fireSoundsPath = "Weapon/Fire/";
-    public string reloadSoundsPath = "Weapon/Reload/";
+    //[Header("Sound")]
+    public string fireSoundsPath => $"{weaponName}/Fire/";
+    public string reloadSoundsPath => $"{weaponName}/Reload/";
     private AudioClip[] fireSounds;
     private AudioClip[] reloadSounds;
     public float fireAudioVolumeModifier = 1f;

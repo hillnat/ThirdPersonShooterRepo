@@ -15,6 +15,7 @@ public class BuyMenu : MonoBehaviour
     public Button BuyM1911;
     public Button BuyShotgun;
     public Button BuyTec9;
+    public Button BuySniper;
     private void Awake()
     {
         if (instance == null)
@@ -29,6 +30,7 @@ public class BuyMenu : MonoBehaviour
     private void Start()
     {
         buyMenuCanvas.gameObject.SetActive(false);
+        RefreshCurrentWeaponsText();
 
         if (BuyM4A1 != null)
         {
@@ -50,7 +52,11 @@ public class BuyMenu : MonoBehaviour
             BuyTec9.onClick.RemoveAllListeners();
             BuyTec9.onClick.AddListener(delegate { BuySellWeapon(EWeapons.Tec9); });
         }
-        Debug.Log(BuyM1911.onClick);
+        if (BuySniper != null)
+        {
+            BuySniper.onClick.RemoveAllListeners();
+            BuySniper.onClick.AddListener(delegate { BuySellWeapon(EWeapons.Sniper); });
+        }
     }
     private void Update()
     {
@@ -72,12 +78,13 @@ public class BuyMenu : MonoBehaviour
         if (currentWeaponsText == null) { return; }
         PlayerController pc = GameManager.instance.localPlayer;
         if (pc == null) {return; }
-        string newText= "Weapons :\n";
+        string newText= $"Weapons ({pc.currentWeapons.Count}/{pc.maxWeapons}):\n";
         
         for(int i=0; i<pc.currentWeapons.Count; i++)
         {
             newText += pc.currentWeapons[i].weaponName + "\n";
         }
+        if (pc.currentWeapons.Count == pc.maxWeapons) { newText += "\nInventory Full!"; }
         currentWeaponsText.text = newText;
     }
     public void BuySellWeapon(EWeapons weapon)

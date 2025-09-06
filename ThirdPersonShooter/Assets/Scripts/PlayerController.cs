@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Animator anim;
     private CapsuleCollider col;
     //[Header("Movement")]
-    private const float moveSpeed = 1600f;
+    private const float moveSpeed = 1700f;
     private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
     public float currentSpeed;
     //[Header("Footsteps")]
@@ -30,10 +30,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Vector2 mouseLookXY = Vector2.zero;
     public float mouseSensitivty = 25f;
     //[Header("Jumping")]
-    private const float jumpForce = 850f;
+    private const float jumpForce = 1050f;
     private bool canJump = false;
     private float lastJumpTime = 0f;
-    private const float fakeGravity = 1100f;
+    private const float jumpDelay = 1.25f;
+    private const float fakeGravity = 1400f;
     //[Header("Ground Checks")]
     private bool isGrounded = false;
     private const float groundedCheckDistance = 0.25f;
@@ -50,14 +51,14 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private const float wallJumpCheckDistance = 1f;
     private const float wallJumpCheckOriginOffset = 0.3f;
     private bool canWallJump => isTouchingWall && wallJumpDelayElapsed;
-    private const float wallJumpForce = 950f;
+    private const float wallJumpForce = 1200f;
     private float lastWallJumpTime = float.MinValue;
-    private const float wallJumpDelay = 0.5f;
+    private const float wallJumpDelay = 2f;
     private bool wallJumpDelayElapsed => GameManager.instance.time > lastWallJumpTime + wallJumpDelay;
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
     private bool canMantle = true;
-    private const float mantleForce = 900f;
+    private const float mantleForce = 950f;
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
     [SerializeField] private int heldItem = 0;
@@ -240,7 +241,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
         hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
 
-        canJump = GameManager.instance.time > lastJumpTime + 0.25f && isGrounded;
+        canJump = (GameManager.instance.time > lastJumpTime + jumpDelay) && isGrounded;
         isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and ttrying to move into the wall
         isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
 
@@ -326,25 +327,25 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 canMantle = false;
                 rb.AddForce(Vector3.up * mantleForce);
                 anim.SetTrigger("Mantle");
-                Debug.Log("mantle");
+                //Debug.Log("mantle");
             }
             else if (canJump)
             {
                 rb.AddForce(Vector3.up * jumpForce);
                 AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.15f, myView.ViewID);
 
-                Debug.Log("jump");
+                //Debug.Log("jump");
                 anim.SetTrigger("Jump");
             }
             else if (isTouchingWall && canWallJump)
             {
-                //canWallJump = false;
                 lastWallJumpTime = GameManager.instance.time;
-                rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce);
+                //rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce * 0.2f);
                 rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
-                rb.AddForce(Vector3.up * jumpForce * 1.3f);
 
-                Debug.Log("walljump");
+                rb.AddForce(Vector3.up * jumpForce * 1.7f);
+
+                //Debug.Log("walljump");
                 anim.SetTrigger("Jump");
                 AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, myView.ViewID);
 
@@ -400,6 +401,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
         anim.SetInteger("MovementZ", Mathf.RoundToInt(InputManager.instance.wasdInputs.y));
         anim.SetBool("Grounded", isGrounded);
+        anim.SetBool("Aiming", isAiming);
         anim.SetBool("WallRunningRight", isWallRunningRight);
         anim.SetBool("WallRunningLeft", isWallRunningLeft);
         anim.SetBool("Dead", isDead);
@@ -451,7 +453,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private void HandleZoom()
     {
         isAiming = InputManager.instance.mouse2Hold;
-        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? zoomFov : baseFov, Time.deltaTime * 35f);
+        Weapon weapon = GetWeapon();
+        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon!=null?weapon.zoomFov:zoomFov : baseFov, Time.deltaTime * 35f);
     }
     [PunRPC]
     public void RPC_ChangeHealth(float delta)
