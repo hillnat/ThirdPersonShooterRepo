@@ -12,13 +12,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Animator anim;
     private CapsuleCollider col;
     //[Header("Movement")]
-    private const float moveSpeed = 1700f;
+    private const float moveSpeed = 1850f;
     private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
     public float currentSpeed;
     //[Header("Footsteps")]
     public bool shouldPlayFootstep => (isGrounded || isWallRunning) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
     private float lastFootstepTime = 0f;
-    private float footstepDelay = 0.35f;
+    private float footstepDelay = 0.31f;
     //[Header("Camera")]
     public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
     private Camera myCamera;
@@ -30,11 +30,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Vector2 mouseLookXY = Vector2.zero;
     public float mouseSensitivty = 25f;
     //[Header("Jumping")]
-    private const float jumpForce = 1050f;
+    private const float jumpForce = 1150f;
     private bool canJump = false;
     private float lastJumpTime = 0f;
     private const float jumpDelay = 1.25f;
-    private const float fakeGravity = 1400f;
+    private const float fakeGravity = 1600f;
     //[Header("Ground Checks")]
     private bool isGrounded = false;
     private const float groundedCheckDistance = 0.25f;
@@ -51,17 +51,18 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private const float wallJumpCheckDistance = 1f;
     private const float wallJumpCheckOriginOffset = 0.3f;
     private bool canWallJump => isTouchingWall && wallJumpDelayElapsed;
-    private const float wallJumpForce = 1200f;
+    private const float wallJumpForce = 1300f;
     private float lastWallJumpTime = float.MinValue;
-    private const float wallJumpDelay = 2f;
+    private const float wallJumpDelay = 1.7f;
     private bool wallJumpDelayElapsed => GameManager.instance.time > lastWallJumpTime + wallJumpDelay;
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
     private bool canMantle = true;
-    private const float mantleForce = 950f;
+    private const float mantleForce = 1150f;
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
     [SerializeField] private int heldItem = 0;
+    [SerializeField] private EWeapons heldItemIndex = 0;
     private bool isChangingWeapon => GameManager.instance.time < lastChangeWeaponTime + 0.2f;
     public List<Weapon> currentWeapons = new List<Weapon>();
     public int maxWeapons = 2;
@@ -98,10 +99,22 @@ public class PlayerController : MonoBehaviour, IPunObservable
     
     public Weapon? GetWeapon()
     {
-        if(currentWeapons.Count==0) { return null; }
-        if(heldItem==-1) { return null; }
-        if(heldItem >= currentWeapons.Count) { return null; }
-        return currentWeapons[heldItem];
+        if (isMine)
+        {
+            if (currentWeapons.Count == 0) { return null; }
+            if (heldItem >= currentWeapons.Count) { return null; }
+        }
+        if (heldItem == -1) { return null; }
+
+        //return currentWeapons[heldItem];
+        if (isMine)
+        {
+            return (currentWeapons[heldItem]);
+        }
+        else
+        {
+            return allWeapons[(int)heldItemIndex];
+        }
     }
     public void AddWeapon(EWeapons weapon)
     {
@@ -130,11 +143,15 @@ public class PlayerController : MonoBehaviour, IPunObservable
     }
     private void ChangeWeapon(int newHeldItem)
     {
+        if(currentWeapons.Count == 0){return; }
         lastChangeWeaponTime = GameManager.instance.time;
         Weapon currentWeapon = GetWeapon();
         if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
-        heldItem = newHeldItem;
-        heldItem = Mathf.Clamp(heldItem, 0, currentWeapons.Count - 1);
+
+        heldItem = Mathf.Clamp(newHeldItem, 0, currentWeapons.Count - 1);
+
+        heldItemIndex = GetWeapon().thisWeapon;
+        
         RefreshWeaponMeshes();
     }
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -142,12 +159,14 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (isMine)
         {
             stream.SendNext(heldItem);
+            stream.SendNext((int)heldItemIndex);
             stream.SendNext(cameraParent.transform.eulerAngles);
         }
         else
         {
             int temp = heldItem;
             heldItem = (int)stream.ReceiveNext();
+            heldItemIndex = (EWeapons)((int)stream.ReceiveNext());
             if (temp != heldItem)
             {
                 RefreshWeaponMeshes();

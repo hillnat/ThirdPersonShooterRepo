@@ -693,7 +693,6 @@ GameObject:
   - component: {fileID: 8170193892177970548}
   - component: {fileID: 3768814949408088208}
   - component: {fileID: 5517399718665162801}
-  - component: {fileID: 955892298459054949}
   - component: {fileID: 8786102147868184235}
   m_Layer: 0
   m_Name: Player
@@ -771,6 +770,7 @@ MonoBehaviour:
   - {fileID: 9149648212668785864}
   - {fileID: 1144719948005291044}
   heldItem: 0
+  heldItemIndex: 0
   currentWeapons: []
   maxWeapons: 2
   ammoText: {fileID: 7197509368289362701}
@@ -840,28 +840,11 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 8170193892177970548}
-  - {fileID: 955892298459054949}
   - {fileID: 8786102147868184235}
   - {fileID: 5315018436831859455}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &955892298459054949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4412522881496607905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 64179f3720bbfe947b7724caa67b7c1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizeVelocity: 1
-  m_SynchronizeAngularVelocity: 0
-  m_TeleportEnabled: 1
-  m_TeleportIfDistanceGreaterThan: 3
 --- !u!114 &8786102147868184235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2615,8 +2598,8 @@ MonoBehaviour:
   reloadDelay: 1.5
   isShotgunReload: 0
   damage: 17
-  fireAudioVolumeModifier: 0.75
-  reloadAudioVolumeModifier: 0.85
+  fireAudioVolumeModifier: 0.6
+  reloadAudioVolumeModifier: 0.5
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
@@ -4135,7 +4118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4182,8 +4165,8 @@ MonoBehaviour:
   reloadDelay: 2.5
   isShotgunReload: 0
   damage: 120
-  fireAudioVolumeModifier: 0.9
-  reloadAudioVolumeModifier: 0.85
+  fireAudioVolumeModifier: 0.5
+  reloadAudioVolumeModifier: 0.5
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
@@ -4290,16 +4273,16 @@ MonoBehaviour:
   maxAmmo: 22
   fireDelay: 0.05
   pelletsPerShot: 1
-  yawSpread: 2
-  pitchSpread: 2
-  maxRange: 75
+  yawSpread: 3
+  pitchSpread: 3
+  maxRange: 40
   isFullAuto: 1
   reloadStartTime: -3.4028235e+38
   reloadDelay: 1.2
   isShotgunReload: 0
   damage: 12
-  fireAudioVolumeModifier: 1
-  reloadAudioVolumeModifier: 1
+  fireAudioVolumeModifier: 0.6
+  reloadAudioVolumeModifier: 0.6
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
@@ -4421,8 +4404,8 @@ MonoBehaviour:
   reloadDelay: 1.5
   isShotgunReload: 0
   damage: 35
-  fireAudioVolumeModifier: 0.75
-  reloadAudioVolumeModifier: 1
+  fireAudioVolumeModifier: 0.6
+  reloadAudioVolumeModifier: 0.6
   impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
   goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
   bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}

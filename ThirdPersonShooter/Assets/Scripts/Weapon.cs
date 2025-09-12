@@ -113,9 +113,9 @@ public class Weapon : MonoBehaviour
                         hitPlayer = true;
                         if (!hitPc.isDead)
                         {
-                            hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
                             hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
-                            ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
+                            hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
+                            //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
                         }
                     }
                     hitAnything = true;
@@ -148,6 +148,7 @@ public class Weapon : MonoBehaviour
     {
         ammo = maxAmmo;
         currentRecoil = Vector2.zero;
+        if(GetIsReloading() ) {CancelReload();}
     }
     #region Unity Callbacks
     private void Awake()
