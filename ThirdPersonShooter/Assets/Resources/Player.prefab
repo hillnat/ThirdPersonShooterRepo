@@ -578,6 +578,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &3405281308371324911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7667251670492473187}
+  m_Layer: 0
+  m_Name: HeadPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7667251670492473187
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3405281308371324911}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.088, z: 0.052}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 347726404839870352}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4132987677875201163
 GameObject:
   m_ObjectHideFlags: 0
@@ -741,7 +772,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.3
+  m_Radius: 0.2
   m_Height: 1.751643
   m_Direction: 1
   m_Center: {x: 0, y: -0.12417853, z: 0}
@@ -762,6 +793,7 @@ MonoBehaviour:
   cameraParent: {fileID: 6744255154447774039}
   baseFov: 90
   zoomFov: 60
+  isAiming: 0
   mouseSensitivty: 25
   allWeapons:
   - {fileID: 6104432424744385212}
@@ -793,6 +825,7 @@ MonoBehaviour:
   kills: 0
   deaths: 0
   lastDeathTime: 0
+  headPoint: {fileID: 7667251670492473187}
 --- !u!54 &3768814949408088208
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2594,6 +2627,9 @@ MonoBehaviour:
   pitchSpread: 0.15
   maxRange: 1000
   isFullAuto: 1
+  aimingMoveSpeedModifier: 1
+  aimingSpreadModifier: 1
+  headshotModifier: 2
   reloadStartTime: 0
   reloadDelay: 1.5
   isShotgunReload: 0
@@ -2751,12 +2787,15 @@ MonoBehaviour:
   pingPongRecoil: 0
   ammo: 0
   maxAmmo: 4
-  fireDelay: 0.2
+  fireDelay: 0.4
   pelletsPerShot: 10
-  yawSpread: 3
-  pitchSpread: 3
-  maxRange: 15
+  yawSpread: 5
+  pitchSpread: 5
+  maxRange: 20
   isFullAuto: 0
+  aimingMoveSpeedModifier: 0.8
+  aimingSpreadModifier: 0.5
+  headshotModifier: 2
   reloadStartTime: 0
   reloadDelay: 0.25
   isShotgunReload: 1
@@ -3486,6 +3525,9 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -5311823803429443790, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7667251670492473187}
     - targetCorrespondingSourceObject: {fileID: 1196217696672835772, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2275451757252941351}
@@ -4147,20 +4189,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: Sniper
   thisWeapon: 4
-  zoomFov: 40
+  zoomFov: 30
   currentRecoil: {x: 0, y: 0}
   xRecoilMinMax: {x: -0.1, y: 0.1}
-  yRecoilMinMax: {x: 0.35, y: 0.4}
-  recoilFadeMultiplier: 25
+  yRecoilMinMax: {x: 0.5, y: 0.7}
+  recoilFadeMultiplier: 22
   pingPongRecoil: 0
   ammo: 4
   maxAmmo: 4
   fireDelay: 0.75
   pelletsPerShot: 1
-  yawSpread: 0
-  pitchSpread: 0
+  yawSpread: 9
+  pitchSpread: 9
   maxRange: 1000
   isFullAuto: 0
+  aimingMoveSpeedModifier: 0.5
+  aimingSpreadModifier: 0
+  headshotModifier: 2
   reloadStartTime: 0
   reloadDelay: 2.5
   isShotgunReload: 0
@@ -4265,8 +4310,8 @@ MonoBehaviour:
   thisWeapon: 3
   zoomFov: 60
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.1, y: 0.1}
-  yRecoilMinMax: {x: 0.05, y: 0.1}
+  xRecoilMinMax: {x: -0.025, y: 0.025}
+  yRecoilMinMax: {x: 0.05, y: 0.075}
   recoilFadeMultiplier: 17
   pingPongRecoil: 0
   ammo: 0
@@ -4277,6 +4322,9 @@ MonoBehaviour:
   pitchSpread: 3
   maxRange: 40
   isFullAuto: 1
+  aimingMoveSpeedModifier: 1
+  aimingSpreadModifier: 1
+  headshotModifier: 2
   reloadStartTime: -3.4028235e+38
   reloadDelay: 1.2
   isShotgunReload: 0
@@ -4400,6 +4448,9 @@ MonoBehaviour:
   pitchSpread: 0
   maxRange: 1000
   isFullAuto: 0
+  aimingMoveSpeedModifier: 1
+  aimingSpreadModifier: 1
+  headshotModifier: 2
   reloadStartTime: 0
   reloadDelay: 1.5
   isShotgunReload: 0

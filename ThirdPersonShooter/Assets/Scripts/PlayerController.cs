@@ -12,8 +12,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Animator anim;
     private CapsuleCollider col;
     //[Header("Movement")]
-    private const float moveSpeed = 1850f;
-    private float curMoveSpeedMod => (isWallRunning ? 2f : 1f);
+    private const float moveSpeed = 2150f;
     public float currentSpeed;
     //[Header("Footsteps")]
     public bool shouldPlayFootstep => (isGrounded || isWallRunning) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
@@ -25,16 +24,16 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public Transform cameraParent;
     [SerializeField] private float baseFov = 90f;
     [SerializeField] private float zoomFov = 60f;
-    private bool isAiming = false;
+    public bool isAiming = false;
     //[Header("Mouse Look")]
     private Vector2 mouseLookXY = Vector2.zero;
     public float mouseSensitivty = 25f;
     //[Header("Jumping")]
-    private const float jumpForce = 1150f;
+    private const float jumpForce = 1750f;
     private bool canJump = false;
     private float lastJumpTime = 0f;
-    private const float jumpDelay = 1.25f;
-    private const float fakeGravity = 1600f;
+    private const float jumpDelay = 0.5f;
+    private const float fakeGravity = 2600f;
     //[Header("Ground Checks")]
     private bool isGrounded = false;
     private const float groundedCheckDistance = 0.25f;
@@ -49,16 +48,16 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private bool isWallRunning => isWallRunningLeft || isWallRunningRight;
     //[Header("Wall Jumping")]
     private const float wallJumpCheckDistance = 1f;
-    private const float wallJumpCheckOriginOffset = 0.3f;
+    private const float wallJumpCheckOriginOffset = 0.1f;
     private bool canWallJump => isTouchingWall && wallJumpDelayElapsed;
-    private const float wallJumpForce = 1300f;
+    private const float wallJumpForce = 1400f;
     private float lastWallJumpTime = float.MinValue;
-    private const float wallJumpDelay = 1.7f;
+    private const float wallJumpDelay = 0.5f;
     private bool wallJumpDelayElapsed => GameManager.instance.time > lastWallJumpTime + wallJumpDelay;
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
     private bool canMantle = true;
-    private const float mantleForce = 1150f;
+    private const float mantleForce = 1450f;
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
     [SerializeField] private int heldItem = 0;
@@ -96,7 +95,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private int lastHitByViewId = int.MinValue;
     private float lastPainSoundTime = 0f;
     private float lastChangeWeaponTime = float.MinValue;
-    
+    public Transform headPoint;
+    public static float headSize = 0.1f;
     public Weapon? GetWeapon()
     {
         if (isMine)
@@ -261,7 +261,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
 
         canJump = (GameManager.instance.time > lastJumpTime + jumpDelay) && isGrounded;
-        isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and ttrying to move into the wall
+        isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and trying to move into the wall
         isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
 
         //if (!canWallJump && isGrounded) { canWallJump = true; }
@@ -330,7 +330,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (InputManager.instance.wasdInputs != Vector2.zero && !BuyMenu.instance.isMenuOpen)
         {
-            rb.AddForce(Vector3.ProjectOnPlane(transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * curMoveSpeedMod * Time.fixedDeltaTime, currentGroundNormal));
+            
+            rb.AddForce(Vector3.ProjectOnPlane(transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (isWallRunning ? 3f : 1f) * (isAiming?GetWeapon().aimingMoveSpeedModifier:1f) * Time.fixedDeltaTime, currentGroundNormal));
             //Only apply sideways forces if not wall running. 
             if (InputManager.instance.wasdInputs.x > 0 && !isWallRunningRight) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
             else if (InputManager.instance.wasdInputs.x < 0 && !isWallRunningLeft) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
@@ -362,7 +363,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 //rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce * 0.2f);
                 rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * wallJumpForce);
 
-                rb.AddForce(Vector3.up * jumpForce * 1.7f);
+                rb.AddForce(Vector3.up * jumpForce);
 
                 //Debug.Log("walljump");
                 anim.SetTrigger("Jump");
@@ -545,5 +546,10 @@ public class PlayerController : MonoBehaviour, IPunObservable
             lastFootstepTime = GameManager.instance.time;
             AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(headPoint.transform.position, headSize);
     }
 }

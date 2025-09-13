@@ -29,6 +29,9 @@ public class Weapon : MonoBehaviour
     public float pitchSpread = 0;
     public float maxRange = 1000;
     public bool isFullAuto = false;
+    public float aimingMoveSpeedModifier = 1f;
+    public float aimingSpreadModifier = 1f;
+    public float headshotModifier = 2f;
     private bool hasSpread => yawSpread!=0 && pitchSpread!=0;
     [Header("Reloading")]
     public float reloadStartTime = float.MinValue;
@@ -74,11 +77,16 @@ public class Weapon : MonoBehaviour
         if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, muzzlePosition, fireAudioVolumeModifier, myPc.myView.ViewID); }
         for (int i = 0; i < pelletsPerShot; i++)
         {
-
-
+            float tempYawSpread = yawSpread;
+            float tempPitchSpread = pitchSpread;
+            if (myPc.isAiming)
+            {
+                tempPitchSpread *= aimingSpreadModifier;
+                tempYawSpread *= aimingSpreadModifier;
+            }
             Vector3 rotatedCamForward = 
-                    Quaternion.AngleAxis(Random.Range(-yawSpread, yawSpread), Vector3.up) * 
-                    Quaternion.AngleAxis(Random.Range(-pitchSpread, pitchSpread), myPc.transform.right) *
+                    Quaternion.AngleAxis(Random.Range(-tempYawSpread, tempYawSpread), Vector3.up) * 
+                    Quaternion.AngleAxis(Random.Range(-tempPitchSpread, tempPitchSpread), myPc.transform.right) *
                     cameraForward;//Calculate spread
             Vector3 camRayDirection = hasSpread ? rotatedCamForward : cameraForward;//If we have spread use it
             bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Camera ray
@@ -110,6 +118,9 @@ public class Weapon : MonoBehaviour
                 {
                     if (hit2.transform.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
                     {
+                        bool isHeadshot = Vector3.Distance(hit2.point, hitPc.headPoint.transform.position) < PlayerController.headSize;
+                        if (isHeadshot) { finalDamage *= headshotModifier; }
+                        Debug.Log("headshot!");
                         hitPlayer = true;
                         if (!hitPc.isDead)
                         {
