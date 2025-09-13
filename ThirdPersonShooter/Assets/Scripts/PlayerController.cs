@@ -13,7 +13,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private CapsuleCollider col;
     //[Header("Movement")]
     private const float moveSpeed = 2150f;
-    public float currentSpeed;
     //[Header("Footsteps")]
     public bool shouldPlayFootstep => (isGrounded || isWallRunning) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
     private float lastFootstepTime = 0f;
@@ -23,7 +22,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Camera myCamera;
     public Transform cameraParent;
     [SerializeField] private float baseFov = 90f;
-    [SerializeField] private float zoomFov = 60f;
     public bool isAiming = false;
     //[Header("Mouse Look")]
     private Vector2 mouseLookXY = Vector2.zero;
@@ -71,6 +69,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public Image reloadIndicator;
     public TMP_Text healthText;
     public TMP_Text kdaText;
+    public TMP_Text speedText;
     [Header("Audio")]
     public AudioClip jumpAudio;
     public AudioClip jump2Audio;
@@ -96,7 +95,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private float lastPainSoundTime = 0f;
     private float lastChangeWeaponTime = float.MinValue;
     public Transform headPoint;
-    public static float headSize = 0.1f;
+    private const float aimingMoveSpeedModifier = 0.675f;
     public Weapon? GetWeapon()
     {
         if (isMine)
@@ -218,7 +217,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             HandleUI();
             HandleGroundAndWallChecks();
             HandleCamera();
-            HandleZoom();
+            HandleAiming();
             
             if (!isDead)
             {
@@ -254,7 +253,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
     #endregion
     private void HandleGroundAndWallChecks()
     {
-        currentSpeed = rb.velocity.magnitude;
         isGrounded = Physics.Raycast(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down, out RaycastHit groundHit, groundedCheckDistance);
         isTouchingWallRight = Physics.Raycast(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right, wallJumpCheckDistance);
         isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
@@ -298,6 +296,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
         healthText.text = Mathf.CeilToInt(health) + "";
         healthText.color = Color.Lerp(Color.red, Color.green, health / 100f);
+
+        speedText.text = $"{((Mathf.Abs(rb.velocity.x)+Mathf.Abs(rb.velocity.z))/2f):F1}mps";
     }
     public void RefreshKdaText()
     {
@@ -330,11 +330,12 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (InputManager.instance.wasdInputs != Vector2.zero && !BuyMenu.instance.isMenuOpen)
         {
-            
-            rb.AddForce(Vector3.ProjectOnPlane(transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (isWallRunning ? 3f : 1f) * (isAiming?GetWeapon().aimingMoveSpeedModifier:1f) * Time.fixedDeltaTime, currentGroundNormal));
-            //Only apply sideways forces if not wall running. 
-            if (InputManager.instance.wasdInputs.x > 0 && !isWallRunningRight) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
-            else if (InputManager.instance.wasdInputs.x < 0 && !isWallRunningLeft) { rb.AddForce(transform.right * InputManager.instance.wasdInputs.x * moveSpeed * Time.fixedDeltaTime); }
+            float aimMoveSpeedMod = (isAiming ? GetWeapon().aimingMoveSpeedModifier : 1f);
+            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (isWallRunning ? 3f : 1f) * aimMoveSpeedMod;
+            Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x * moveSpeed * (isWallRunning ? 0f : 1f) * aimMoveSpeedMod;
+            Vector3 movementVector = Vector3.ProjectOnPlane((forwardVector + rightVector), currentGroundNormal);
+            rb.AddForce(movementVector*Time.fixedDeltaTime);
+            //Directional inputs are already normalized
         }
     }
     private void HandleInputs()
@@ -470,11 +471,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         if (GetWeapon() != null) { GetWeapon().gameObject.SetActive(true); }
     }
-    private void HandleZoom()
+    private void HandleAiming()
     {
-        isAiming = InputManager.instance.mouse2Hold;
         Weapon weapon = GetWeapon();
-        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon!=null?weapon.zoomFov:zoomFov : baseFov, Time.deltaTime * 35f);
+        isAiming = weapon!=null&&InputManager.instance.mouse2Hold;
+        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon.zoomFov : baseFov, Time.deltaTime * 30f);
     }
     [PunRPC]
     public void RPC_ChangeHealth(float delta)
@@ -550,6 +551,5 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(headPoint.transform.position, headSize);
     }
 }

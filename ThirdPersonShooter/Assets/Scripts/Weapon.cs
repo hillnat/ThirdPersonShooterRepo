@@ -111,16 +111,24 @@ public class Weapon : MonoBehaviour
 
                 float t = hit2.distance / maxRange;
                 float finalDamage = Mathf.Lerp(damage, 0, t);
-                Debug.Log($"Pellet collided and wouldve dealt {finalDamage} dmg");
+                
                 bool hitPlayer = false;//Not known yet
                 bool hitAnything = false;//Not known yet
                 if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
                 {
-                    if (hit2.transform.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
+                    if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
                     {
-                        bool isHeadshot = Vector3.Distance(hit2.point, hitPc.headPoint.transform.position) < PlayerController.headSize;
+
+                        bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
                         if (isHeadshot) { finalDamage *= headshotModifier; }
-                        Debug.Log("headshot!");
+                        string hitData = "";
+                        hitData += $"time : {GameManager.instance.time}\n";
+                        hitData += $"headshot : {isHeadshot}\n";
+                        hitData += $"collider : {hit2.collider}\n";
+                        hitData += $"final damage : {finalDamage}\n";
+                        Debug.Log(hitData);
+                        
+                        
                         hitPlayer = true;
                         if (!hitPc.isDead)
                         {
