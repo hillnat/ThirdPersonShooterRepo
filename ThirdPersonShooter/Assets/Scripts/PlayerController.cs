@@ -1,6 +1,7 @@
 using Photon.Pun;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,13 +12,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Rigidbody rb;
     private Animator anim;
     private CapsuleCollider col;
-    //[Header("Movement")]
+    [Header("Movement")]
     private const float moveSpeed = 2150f;
-    //[Header("Footsteps")]
-    public bool shouldPlayFootstep => (isGrounded || isWallRunning) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f;
+    //Header("Footsteps")]
+    public bool GetShouldPlayFootstep() { return (isGrounded || GetIsWallRunning()) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f; }
     private float lastFootstepTime = 0f;
     private float footstepDelay = 0.31f;
-    //[Header("Camera")]
+    [Header("Camera")]
     public Vector3 cameraOffset = new Vector3(1f, 0.5f, -2f);
     private Camera myCamera;
     public Transform cameraParent;
@@ -40,30 +41,30 @@ public class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Wall Running")]
     private bool isTouchingWallRight = false;
     private bool isTouchingWallLeft = false;
-    private bool isTouchingWall => isTouchingWallLeft || isTouchingWallRight;
+    private bool GetIsTouchingWall() { return isTouchingWallLeft || isTouchingWallRight; }
     private bool isWallRunningRight = false;
     private bool isWallRunningLeft = false;
-    private bool isWallRunning => isWallRunningLeft || isWallRunningRight;
+    private bool GetIsWallRunning() { return isWallRunningLeft || isWallRunningRight; }
     //[Header("Wall Jumping")]
     private const float wallJumpCheckDistance = 1f;
     private const float wallJumpCheckOriginOffset = 0.1f;
-    private bool canWallJump => isTouchingWall && wallJumpDelayElapsed;
+    private bool GetCanWallJump() { return GetIsTouchingWall() && GetWallJumpDelayElapsed(); }
     private const float wallJumpForce = 1400f;
     private float lastWallJumpTime = float.MinValue;
     private const float wallJumpDelay = 0.5f;
-    private bool wallJumpDelayElapsed => GameManager.instance.time > lastWallJumpTime + wallJumpDelay;
+    private bool GetWallJumpDelayElapsed() { return GameManager.instance.time > lastWallJumpTime + wallJumpDelay; }
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
     private bool canMantle = true;
     private const float mantleForce = 1450f;
     //[Header("Inventory")]
     public List<Weapon> allWeapons = new List<Weapon>();
-    [SerializeField] private int heldItem = 0;
-    [SerializeField] private EWeapons heldItemIndex = 0;
-    private bool isChangingWeapon => GameManager.instance.time < lastChangeWeaponTime + 0.2f;
+    [SerializeField] private int heldItem = -1;
+    [SerializeField] private EWeapons heldItemEnum = (EWeapons)int.MaxValue;
+    private bool GetIsChangingWeapon() { return GameManager.instance.time < lastChangeWeaponTime + 0.2f; }
     public List<Weapon> currentWeapons = new List<Weapon>();
     public int maxWeapons = 2;
-    public bool isInventoryFull => currentWeapons.Count >= maxWeapons;
+    public bool GetIsInventoryFull() {return currentWeapons.Count >= maxWeapons; }
     [Header("UI")]
     public TMP_Text ammoText;
     public Image reloadIndicator;
@@ -75,44 +76,48 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public AudioClip jump2Audio;
     public AudioClip painSounds;
     public string footstepSoundsPath = "Player/Footsteps/";
+    private float lastPainSoundTime = 0f;
     [SerializeField]private AudioClip[] footsteps;
     //[Header("Networking")]
     private bool isMine = false;
     public PhotonView myView;
     public List<GameObject> destroyIfNotLocal = new List<GameObject>();
-
-    public Transform muzzlePoint;
-    public float currentAccuracyModifier = 0f;
-
+    private int lastHitByViewId = int.MinValue;    
+    //[Header("Stats")]
     public float health = 100;
     public int kills = 0;
     public int deaths = 0;
-    public bool isDead => health <= 0;
+    public bool GetIsDead() { return health <= 0; }
     public float lastDeathTime = 0f;
-    
+    //[Header("Collider")]
     private float baseColliderHeight = 0f;
-    private int lastHitByViewId = int.MinValue;
-    private float lastPainSoundTime = 0f;
     private float lastChangeWeaponTime = float.MinValue;
     public Transform headPoint;
-    private const float aimingMoveSpeedModifier = 0.675f;
+    //[Header("Shooting")]
+    public List<Projectile> ownedProjectiles;
+    public Transform muzzlePoint;
+
+    #region Weapon
     public Weapon? GetWeapon()
     {
         if (isMine)
         {
             if (currentWeapons.Count == 0) { return null; }
             if (heldItem >= currentWeapons.Count) { return null; }
+            if (heldItem < 0) { return null; }
         }
-        if (heldItem == -1) { return null; }
+        else if ((int)heldItemEnum == int.MaxValue)
+        {
+            return null;
+        }
 
-        //return currentWeapons[heldItem];
         if (isMine)
         {
-            return (currentWeapons[heldItem]);
+            return currentWeapons[heldItem];
         }
         else
         {
-            return allWeapons[(int)heldItemIndex];
+            return allWeapons[(int)heldItemEnum];
         }
     }
     public void AddWeapon(EWeapons weapon)
@@ -142,37 +147,73 @@ public class PlayerController : MonoBehaviour, IPunObservable
     }
     private void ChangeWeapon(int newHeldItem)
     {
-        if(currentWeapons.Count == 0){return; }
+        if(currentWeapons.Count == 0){
+            heldItem = -1;
+            heldItemEnum = (EWeapons)int.MaxValue;
+            return; 
+        }
         lastChangeWeaponTime = GameManager.instance.time;
         Weapon currentWeapon = GetWeapon();
         if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
 
         heldItem = Mathf.Clamp(newHeldItem, 0, currentWeapons.Count - 1);
 
-        heldItemIndex = GetWeapon().thisWeapon;
+        heldItemEnum = GetWeapon().weaponType;
         
         RefreshWeaponMeshes();
     }
+    public EWeapons GetHeldItemIndex() { Weapon weapon = GetWeapon(); if (weapon != null) { return weapon.weaponType; } else { return (EWeapons)int.MaxValue; } }
+    public void RefreshWeaponMeshes()
+    {
+        if (isMine)
+        {
+            if (currentWeapons.Count == 0)
+            {
+                heldItem = -1;
+                heldItemEnum = (EWeapons)int.MaxValue;
+                return;
+            }
+        }
+        
+        ToggleAllWeaponMeshes(false);
+        if (GetWeapon() != null) { GetWeapon().gameObject.SetActive(true); }
+    }
+    public void ToggleAllWeaponMeshes(bool state)
+    {
+        for (int i = 0; i < allWeapons.Count; i++)
+        {
+            allWeapons[i].gameObject.SetActive(state);
+        }
+    }
+    private void ResetAllWeapons()
+    {
+        for (int i = 0; i < allWeapons.Count; i++)
+        {
+            allWeapons[i].ResetWeapon();
+        }
+    }
+
+    #endregion
+    #region Networking
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (isMine)
         {
-            stream.SendNext(heldItem);
-            stream.SendNext((int)heldItemIndex);
+            stream.SendNext((int)heldItemEnum);
             stream.SendNext(cameraParent.transform.eulerAngles);
         }
         else
         {
-            int temp = heldItem;
-            heldItem = (int)stream.ReceiveNext();
-            heldItemIndex = (EWeapons)((int)stream.ReceiveNext());
-            if (temp != heldItem)
+            int temp = (int)heldItemEnum;
+            heldItemEnum = (EWeapons)((int)stream.ReceiveNext());
+            if (temp != (int)heldItemEnum)
             {
                 RefreshWeaponMeshes();
             }
             cameraParent.transform.eulerAngles = (Vector3)stream.ReceiveNext();
         }
     }
+    #endregion
     #region Unity Callbacks
     private void Awake()
     {
@@ -183,7 +224,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
         baseColliderHeight=col.height;
         isMine = myView.IsMine;
         currentWeapons.Clear();
-        heldItem = 0;
         if (isMine)
         {
             myCamera = Camera.main;
@@ -203,6 +243,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         health = 100;
         RefreshWeaponMeshes();
+        ToggleAllWeaponMeshes(false);
         RefreshKdaText();
         ResetAllWeapons();
         mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
@@ -219,7 +260,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             HandleCamera();
             HandleAiming();
             
-            if (!isDead)
+            if (!GetIsDead())
             {
                 if (!SettingsManager.instance.settingsOpen)
                 {
@@ -241,38 +282,16 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (isMine)
         {
-            if (!isDead)
+            if (!GetIsDead())
             {
                 HandleMovement();
             }
             HandleFakeGravity();
             HandleAnimatorStates();
-            HandleAccuracyModifier();
         }
     }
     #endregion
-    private void HandleGroundAndWallChecks()
-    {
-        isGrounded = Physics.Raycast(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down, out RaycastHit groundHit, groundedCheckDistance);
-        isTouchingWallRight = Physics.Raycast(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right, wallJumpCheckDistance);
-        isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
-        hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
-
-        canJump = (GameManager.instance.time > lastJumpTime + jumpDelay) && isGrounded;
-        isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and trying to move into the wall
-        isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
-
-        //if (!canWallJump && isGrounded) { canWallJump = true; }
-        //if (!canWallJump && isTouchingWall) { canWallJump = true; }
-        if (!canMantle && isGrounded) { canMantle = true; }
-        if (isGrounded) { currentGroundNormal = groundHit.normal; }
-        else { currentGroundNormal = Vector3.zero; }
-
-        Debug.DrawRay(transform.position + new Vector3(0, -1f, 0), Vector3.down * groundedCheckDistance, Color.red);
-        Debug.DrawRay(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right * wallJumpCheckDistance, isTouchingWall ? Color.green : Color.red);
-        Debug.DrawRay(transform.position + transform.right * -wallJumpCheckOriginOffset, transform.right * -wallJumpCheckDistance, isTouchingWall ? Color.green : Color.red);
-        Debug.DrawRay(transform.position, transform.forward, hasMantlePoint ? Color.green : Color.red);
-    }
+    #region UI
     private void HandleUI()
     {
         if (GetWeapon() != null)
@@ -303,41 +322,49 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         kdaText.text = $"K:{kills} D:{deaths}";
     }
-    private void HandleAccuracyModifier()
-    {
-        if (isGrounded)
-        {
-            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 1f, Time.fixedDeltaTime * 5f);
-            if (currentAccuracyModifier > 0.95f)
-            {
-                currentAccuracyModifier = 1f;
-            }
-        }
-        else
-        {
-            currentAccuracyModifier = Mathf.Lerp(currentAccuracyModifier, 0f, Time.fixedDeltaTime * 5f);
-            if (currentAccuracyModifier < 0.05f)
-            {
-                currentAccuracyModifier = 0f;
-            }
-        }
-    }
+    #endregion
+    #region Movement & Physics
     private void HandleFakeGravity()
     {
-        if (!isGrounded & !isWallRunning) { rb.AddForce(Vector3.down * fakeGravity * Time.fixedDeltaTime); }
+        if (!isGrounded & !GetIsWallRunning()) { rb.AddForce(Vector3.down * fakeGravity * Time.fixedDeltaTime); }
     }
     private void HandleMovement()
     {
         if (InputManager.instance.wasdInputs != Vector2.zero && !BuyMenu.instance.isMenuOpen)
         {
             float aimMoveSpeedMod = (isAiming ? GetWeapon().aimingMoveSpeedModifier : 1f);
-            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (isWallRunning ? 3f : 1f) * aimMoveSpeedMod;
-            Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x * moveSpeed * (isWallRunning ? 0f : 1f) * aimMoveSpeedMod;
+            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (GetIsWallRunning() ? 3f : 1f) * aimMoveSpeedMod;
+            Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x * moveSpeed * (GetIsWallRunning() ? 0f : 1f) * aimMoveSpeedMod;
             Vector3 movementVector = Vector3.ProjectOnPlane((forwardVector + rightVector), currentGroundNormal);
             rb.AddForce(movementVector*Time.fixedDeltaTime);
             //Directional inputs are already normalized
         }
     }
+    private void HandleGroundAndWallChecks()
+    {
+        isGrounded = Physics.Raycast(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down, out RaycastHit groundHit, groundedCheckDistance);
+        isTouchingWallRight = Physics.Raycast(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right, wallJumpCheckDistance);
+        isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
+        hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
+
+        canJump = (GameManager.instance.time > lastJumpTime + jumpDelay) && isGrounded;
+        isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and trying to move into the wall
+        isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
+
+        //if (!GetCanWallJump() && isGrounded) { GetCanWallJump() = true; }
+        //if (!GetCanWallJump() && GetIsTouchingWall()) { GetCanWallJump() = true; }
+        if (!canMantle && isGrounded) { canMantle = true; }
+        if (isGrounded) { currentGroundNormal = groundHit.normal; }
+        else { currentGroundNormal = Vector3.zero; }
+
+        Debug.DrawRay(transform.position + new Vector3(0, -1f, 0), Vector3.down * groundedCheckDistance, Color.red);
+        Debug.DrawRay(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right * wallJumpCheckDistance, GetIsTouchingWall() ? Color.green : Color.red);
+        Debug.DrawRay(transform.position + transform.right * -wallJumpCheckOriginOffset, transform.right * -wallJumpCheckDistance, GetIsTouchingWall() ? Color.green : Color.red);
+        Debug.DrawRay(transform.position, transform.forward, hasMantlePoint ? Color.green : Color.red);
+    }
+
+    #endregion
+    #region Input
     private void HandleInputs()
     {
         if (InputManager.instance.jump && !BuyMenu.instance.isMenuOpen)
@@ -358,7 +385,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 //Debug.Log("jump");
                 anim.SetTrigger("Jump");
             }
-            else if (isTouchingWall && canWallJump)
+            else if (GetIsTouchingWall() && GetCanWallJump())
             {
                 lastWallJumpTime = GameManager.instance.time;
                 //rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce * 0.2f);
@@ -376,7 +403,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             ChangeWeapon(heldItem + (int)InputManager.instance.scrollDelta.y);
         }
-        if(GetWeapon() && !isChangingWeapon)
+        if(GetWeapon() && !GetIsChangingWeapon())
         {
             if (BuyMenu.instance.isMenuOpen) { return; }
             Weapon weapon = GetWeapon();
@@ -416,7 +443,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (InputManager.instance.alpha9) { ChangeWeapon(8); }
         if (InputManager.instance.alpha0) { ChangeWeapon(9); }
     }
-    
+    #endregion
+    #region Animation
     private void HandleAnimatorStates()
     {
         anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
@@ -425,16 +453,18 @@ public class PlayerController : MonoBehaviour, IPunObservable
         anim.SetBool("Aiming", isAiming);
         anim.SetBool("WallRunningRight", isWallRunningRight);
         anim.SetBool("WallRunningLeft", isWallRunningLeft);
-        anim.SetBool("Dead", isDead);
+        anim.SetBool("Dead", GetIsDead());
         if (GetWeapon() != null) { 
             anim.SetBool("Reloading", GetWeapon().GetIsReloading());
-            anim.SetInteger("HeldItem", (int)GetWeapon().thisWeapon+1);
+            anim.SetInteger("HeldItem", (int)GetWeapon().weaponType+1);
         }
         else { 
             anim.SetBool("Reloading", false);
             anim.SetInteger("HeldItem", 0);
         }
     }
+    #endregion
+    #region Camera & Aiming
     private void HandleCamera()
     {
         cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
@@ -463,24 +493,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (mouseLookXY.y > 360f) { mouseLookXY.y -= 360f; }
         if (mouseLookXY.y < -360f) { mouseLookXY.y += 360f; }
     }
-    public void RefreshWeaponMeshes()
-    {
-        for (int i = 0; i < allWeapons.Count; i++)
-        {
-            allWeapons[i].gameObject.SetActive(false);
-        }
-        if (GetWeapon() != null) { GetWeapon().gameObject.SetActive(true); }
-    }
+    
     private void HandleAiming()
     {
         Weapon weapon = GetWeapon();
         isAiming = weapon!=null&&InputManager.instance.mouse2Hold;
         myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon.zoomFov : baseFov, Time.deltaTime * 30f);
     }
+    #endregion
+    #region RPCs
     [PunRPC]
     public void RPC_ChangeHealth(float delta)
     {
-        if (!isMine || isDead) { return; }
+        if (!isMine || GetIsDead()) { return; }
         health += delta;
         if (delta < 0 && GameManager.instance.time>lastPainSoundTime+0.1f)
         {
@@ -513,10 +538,33 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if(!isMine) { return; }
         lastHitByViewId = viewId;
     }
+    #endregion
+    #region Footsteps
+    private void HandleFootsteps()
+    {
+        if (GetShouldPlayFootstep() && GameManager.instance.time > lastFootstepTime + footstepDelay)
+        {
+            lastFootstepTime = GameManager.instance.time;
+            AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
+        }
+    }
+    #endregion
+    #region Projectiles
+    public void SpawnProjectile(string preafabPath, Vector3 position, Quaternion rotation, Vector3 targetPosition)
+    {
+        GameObject go = PhotonNetwork.Instantiate(preafabPath, position, rotation);
+        Projectile newProjectile = go.GetComponent<Projectile>();
+        newProjectile.owningPc = this;
+        newProjectile.targetPosition = targetPosition;
+        ownedProjectiles.Add(newProjectile);
+    }
+    #endregion
+    #region Death & Respawn
     public void Die()
     {
         myView.RPC(nameof(RPC_AddDeaths), RpcTarget.AllBuffered, 1);//Add death
-        if (lastHitByViewId != int.MinValue) {
+        if (lastHitByViewId != int.MinValue)
+        {
             PhotonView.Find(lastHitByViewId).RPC(nameof(RPC_AddKills), RpcTarget.AllBuffered, 1);//Add kill to killer
         }
         health = 0;
@@ -533,21 +581,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         transform.position = GameManager.instance.GetRandomSpawn();
         lastHitByViewId = int.MinValue;
     }
-    private void ResetAllWeapons()
-    {
-        for (int i = 0; i < allWeapons.Count; i++)
-        {
-            allWeapons[i].ResetWeapon();
-        }
-    }
-    private void HandleFootsteps()
-    {
-        if (shouldPlayFootstep && GameManager.instance.time > lastFootstepTime + footstepDelay)
-        {
-            lastFootstepTime = GameManager.instance.time;
-            AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
-        }
-    }
+    #endregion
 
     private void OnDrawGizmos()
     {

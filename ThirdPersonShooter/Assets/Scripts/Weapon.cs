@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-public enum EWeapons { M4A1, M1911, Shotgun, Tec9, Sniper }
+public enum EWeapons { M4A1, M1911, Shotgun, Tec9, Sniper, RingBlade, RecallDagger }
 
 public class Weapon : MonoBehaviour
 {
 
     private PlayerController myPc;
     public string weaponName = "Weapon";
-    public EWeapons thisWeapon;
+    public EWeapons weaponType;
     public float zoomFov = 60f;
     [Header("Recoil")]
     public Vector2 currentRecoil = Vector2.zero;
@@ -32,6 +32,8 @@ public class Weapon : MonoBehaviour
     public float aimingMoveSpeedModifier = 1f;
     public float aimingSpreadModifier = 1f;
     public float headshotModifier = 2f;
+    public bool usesProjectile = false;
+    public string projectilePrefab;
     private bool hasSpread => yawSpread!=0 && pitchSpread!=0;
     [Header("Reloading")]
     public float reloadStartTime = float.MinValue;
@@ -65,9 +67,7 @@ public class Weapon : MonoBehaviour
     {
         if (!GetCanFire()) { return; }
         if (GetIsReloading()) { CancelReload(); }
-        
-        /*
-         */
+   
         ammo--;
         lastFiredTime = GameManager.instance.time;
         //Add recoil
@@ -75,77 +75,90 @@ public class Weapon : MonoBehaviour
         //Play sound
         AudioClip fireAudio = GetRandomFireSound();
         if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, muzzlePosition, fireAudioVolumeModifier, myPc.myView.ViewID); }
-        for (int i = 0; i < pelletsPerShot; i++)
+        if (!usesProjectile)
         {
-            float tempYawSpread = yawSpread;
-            float tempPitchSpread = pitchSpread;
-            if (myPc.isAiming)
+            for (int i = 0; i < pelletsPerShot; i++)
             {
-                tempPitchSpread *= aimingSpreadModifier;
-                tempYawSpread *= aimingSpreadModifier;
-            }
-            Vector3 rotatedCamForward = 
-                    Quaternion.AngleAxis(Random.Range(-tempYawSpread, tempYawSpread), Vector3.up) * 
-                    Quaternion.AngleAxis(Random.Range(-tempPitchSpread, tempPitchSpread), myPc.transform.right) *
-                    cameraForward;//Calculate spread
-            Vector3 camRayDirection = hasSpread ? rotatedCamForward : cameraForward;//If we have spread use it
-            bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Camera ray
-
-            //Muzzle direction is from the muzzle to the hit point, unless it didnt hit, then to the camera ray end point (so particles still spawn at the end of the ray)
-            Vector3 muzzleDirection = 
-                (hit1.point - 
-                muzzlePosition).normalized;
-
-            bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
-
-            ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
-
-
-            if (cameraRaySuccess)
-            {
-
-                Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
-                Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
-
-
-
-                float t = hit2.distance / maxRange;
-                float finalDamage = Mathf.Lerp(damage, 0, t);
-                
-                bool hitPlayer = false;//Not known yet
-                bool hitAnything = false;//Not known yet
-                if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
+                float tempYawSpread = yawSpread;
+                float tempPitchSpread = pitchSpread;
+                if (myPc.isAiming)
                 {
-                    if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
+                    tempPitchSpread *= aimingSpreadModifier;
+                    tempYawSpread *= aimingSpreadModifier;
+                }
+                Vector3 rotatedCamForward =
+                        Quaternion.AngleAxis(Random.Range(-tempYawSpread, tempYawSpread), Vector3.up) *
+                        Quaternion.AngleAxis(Random.Range(-tempPitchSpread, tempPitchSpread), myPc.transform.right) *
+                        cameraForward;//Calculate spread
+                Vector3 camRayDirection = hasSpread ? rotatedCamForward : cameraForward;//If we have spread use it
+                bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Camera ray
+
+                //Muzzle direction is from the muzzle to the hit point, unless it didnt hit, then to the camera ray end point (so particles still spawn at the end of the ray)
+                Vector3 muzzleDirection =
+                    (hit1.point -
+                    muzzlePosition).normalized;
+
+                bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
+
+                ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
+
+
+                if (cameraRaySuccess)
+                {
+
+                    Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
+                    Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
+
+
+
+                    float t = hit2.distance / maxRange;
+                    float finalDamage = Mathf.Lerp(damage, 0, t);
+
+                    bool hitPlayer = false;//Not known yet
+                    bool hitAnything = false;//Not known yet
+                    if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
                     {
-
-                        bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
-                        if (isHeadshot) { finalDamage *= headshotModifier; }
-                        string hitData = "";
-                        hitData += $"time : {GameManager.instance.time}\n";
-                        hitData += $"headshot : {isHeadshot}\n";
-                        hitData += $"collider : {hit2.collider}\n";
-                        hitData += $"final damage : {finalDamage}\n";
-                        Debug.Log(hitData);
-                        
-                        
-                        hitPlayer = true;
-                        if (!hitPc.isDead)
+                        if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
                         {
-                            hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
-                            hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
-                            //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
+
+                            bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
+                            if (isHeadshot) { finalDamage *= headshotModifier; }
+                            string hitData = "";
+                            hitData += $"time : {GameManager.instance.time}\n";
+                            hitData += $"headshot : {isHeadshot}\n";
+                            hitData += $"collider : {hit2.collider}\n";
+                            hitData += $"final damage : {finalDamage}\n";
+                            Debug.Log(hitData);
+
+
+                            hitPlayer = true;
+                            if (!hitPc.GetIsDead())
+                            {
+                                hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
+                                hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
+                                //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
+                            }
                         }
+                        hitAnything = true;
                     }
-                    hitAnything = true;
+                    if (hitPlayer)
+                    {
+                        ParticleManager.instance.PlayParticle(true, goreParticles, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
+                    }
+                    else if (hitAnything) { ParticleManager.instance.PlayParticle(true, impactParticles, hit2.point, Quaternion.Euler(hit2.normal)); }//Spawn dust
                 }
-                if (hitPlayer)
-                {
-                    ParticleManager.instance.PlayParticle(true, goreParticles, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
-                }
-                else if (hitAnything) { ParticleManager.instance.PlayParticle(true, impactParticles, hit2.point, Quaternion.Euler(hit2.normal)); }//Spawn dust
-            }        
-        }    
+            }
+        }
+        else
+        {
+           // bool cameraRaySuccess = Physics.Raycast(cameraOrigin, cameraForward, out RaycastHit hit1, maxRange);//Camera ray
+
+            myPc.SpawnProjectile(projectilePrefab, muzzlePosition, Quaternion.Euler(cameraForward), muzzlePosition+(cameraForward*10000));
+        }
+    }
+    public void IncrementAmmo(int delta)
+    {
+        ammo = Mathf.Clamp(ammo + delta, 0, maxAmmo);
     }
     public void StartReloading()
     {
@@ -155,6 +168,19 @@ public class Weapon : MonoBehaviour
 
         AudioClip reloadAudio = GetRandomReloadSound();
         if (reloadAudio != null) { AudioManager.instance.PlaySound(true, reloadAudio, Vector3.zero, reloadAudioVolumeModifier, myPc.myView.ViewID); }
+
+        if (weaponType == EWeapons.RecallDagger)
+        {
+            for (int i = 0; i < myPc.ownedProjectiles.Count; i++)
+            {
+                if (myPc.ownedProjectiles[i].projectileType == EProjectiles.RecallDagger)
+                {
+                    Projectile myProjectile = myPc.ownedProjectiles[i];
+                    myProjectile.wantsToFlyToPlayer = true;
+                    //myProjectile.ToggleCollider(true);
+                }
+            }
+        }
         Debug.Log("reload started");
     }
     public void CancelReload()

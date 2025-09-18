@@ -16,6 +16,8 @@ public class BuyMenu : MonoBehaviour
     public Button BuyShotgun;
     public Button BuyTec9;
     public Button BuySniper;
+    public Button BuyRingblade;
+    public Button BuyRecallDagger;
     private void Awake()
     {
         if (instance == null)
@@ -57,6 +59,16 @@ public class BuyMenu : MonoBehaviour
             BuySniper.onClick.RemoveAllListeners();
             BuySniper.onClick.AddListener(delegate { BuySellWeapon(EWeapons.Sniper); });
         }
+        if (BuyRingblade != null)
+        {
+            BuyRingblade.onClick.RemoveAllListeners();
+            BuyRingblade.onClick.AddListener(delegate { BuySellWeapon(EWeapons.RingBlade); });
+        }
+        if (BuyRecallDagger != null)
+        {
+            BuyRecallDagger.onClick.RemoveAllListeners();
+            BuyRecallDagger.onClick.AddListener(delegate { BuySellWeapon(EWeapons.RecallDagger); });
+        }
     }
     private void Update()
     {
@@ -97,7 +109,7 @@ public class BuyMenu : MonoBehaviour
             {
                 pc.RemoveWeapon(weapon);
             }
-            else if(!pc.isInventoryFull){ pc.AddWeapon(weapon); } 
+            else if(!pc.GetIsInventoryFull()){ pc.AddWeapon(weapon); } 
         }
         RefreshCurrentWeaponsText();
     }
