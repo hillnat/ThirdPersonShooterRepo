@@ -49,11 +49,11 @@ public class M4A1 : Weapon
 
     public override string projectilePrefab => "";
 
-    public override float fireSoundsVolumeModifier => 0.3f;
+    public override float fireSoundsVolumeModifier => 0.25f;
 
     public override Vector2 fireSoundsPitchRange => new Vector2(0.9f,1.1f);
 
-    public override float reloadSoundsVolumeModifier => 0.8f;
+    public override float reloadSoundsVolumeModifier => 0.5f;
 
     public override Vector2 reloadSoundsPitchRange => new Vector2(0.95f, 1.05f);
 

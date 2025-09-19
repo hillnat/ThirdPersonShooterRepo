@@ -1217,7 +1217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9048b8ba6904d14899bb15e438d6968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraOffset: {x: 0.36, y: 0.66, z: -0.86}
+  cameraOffset: {x: 0.36, y: 0.5, z: -0.86}
   cameraParent: {fileID: 6744255154447774039}
   baseFov: 90
   isAiming: 0
@@ -4244,7 +4244,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_Name
-      value: M4A1
+      value: Rifle
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_IsActive

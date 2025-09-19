@@ -34,7 +34,7 @@ public class M1911 : Weapon
 
     public override float headshotModifier => 2f;
 
-    public override float reloadDelay => 1f;
+    public override float reloadDelay => 1.25f;
 
     public override float damage => 26f;
 
@@ -50,7 +50,7 @@ public class M1911 : Weapon
 
     public override Vector2 fireSoundsPitchRange => new Vector2(0.9f, 1.1f);
 
-    public override float reloadSoundsVolumeModifier => 0.8f;
+    public override float reloadSoundsVolumeModifier => 0.4f;
 
     public override Vector2 reloadSoundsPitchRange => new Vector2(0.95f, 1.05f);
     private void Awake()

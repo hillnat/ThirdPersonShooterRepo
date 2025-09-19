@@ -116,7 +116,7 @@ MonoBehaviour:
   bouncesOffPlayers: 0
   impactAudio: {fileID: 8300000, guid: 4a05f5c9b3e7e2945a12552d8a2c2f8b, type: 3}
   impactAudioPitchRange: {x: 0.9, y: 1}
-  impactAudioVolumeModifier: 0.6
+  impactAudioVolumeModifier: 0.45
   wantsToFlyToPlayer: 0
   flyToPlayerSpeed: 22
   baseDamage: 13

@@ -46,7 +46,7 @@ public class RecallDagger : Weapon
     public override bool usesProjectile => true;
 
     public override string projectilePrefab => "Projectiles/Projectile_RecallDagger";
-    public override float fireSoundsVolumeModifier => 0.45f;
+    public override float fireSoundsVolumeModifier => 0.4f;
 
     public override Vector2 fireSoundsPitchRange => new Vector2(0.9f, 1.1f);
 

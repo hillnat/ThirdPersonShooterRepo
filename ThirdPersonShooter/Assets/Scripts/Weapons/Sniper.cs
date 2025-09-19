@@ -8,7 +8,7 @@ public class Sniper : Weapon
 
     public override EWeapons weaponType => EWeapons.Sniper;
 
-    public override float zoomFov =>25f;
+    public override float zoomFov =>30f;
 
     public override Vector2 xRecoilMinMax => new Vector2(-0.5f, 0.5f);
 
