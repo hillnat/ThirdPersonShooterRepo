@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Animator anim;
     private CapsuleCollider col;
     [Header("Movement")]
-    private const float moveSpeed = 2150f;
+    private const float moveSpeed = 2000f;
     //Header("Footsteps")]
     public bool GetShouldPlayFootstep() { return (isGrounded || GetIsWallRunning()) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f; }
     private float lastFootstepTime = 0f;
@@ -28,15 +28,17 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Vector2 mouseLookXY = Vector2.zero;
     public float mouseSensitivty = 25f;
     //[Header("Jumping")]
-    private const float jumpForce = 1750f;
-    private bool canJump = false;
+    private const float jumpForce = 1550f;
+    public int jumps = 1;
     private float lastJumpTime = 0f;
     private const float jumpDelay = 0.5f;
     private const float fakeGravity = 2600f;
+    public bool GetJumpDelayElapsed() { return GameManager.instance.time > lastJumpTime + jumpDelay; }
+    public bool GetCanJump() { return GetJumpDelayElapsed() && jumps>0; }
     //[Header("Ground Checks")]
     private bool isGrounded = false;
-    private const float groundedCheckDistance = 0.25f;
-    private const float groundedCheckOriginOffset = -0.95f;
+    private const float groundedCheckDistance = 0.05f;
+    private const float groundedCheckOriginOffset = -0.99f;
     private Vector3 currentGroundNormal = Vector3.zero;
     //[Header("Wall Running")]
     private bool isTouchingWallRight = false;
@@ -256,7 +258,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (isMine)
         {
             HandleUI();
-            HandleGroundAndWallChecks();
             HandleCamera();
             HandleAiming();
             
@@ -276,6 +277,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                     Respawn();
                 }
             }
+            HandleGroundAndWallChecks();
         }
     }
     private void FixedUpdate()
@@ -347,7 +349,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
         isTouchingWallLeft = Physics.Raycast(transform.position + transform.right * -wallJumpCheckOriginOffset, -transform.right, wallJumpCheckDistance);
         hasMantlePoint = Physics.SphereCast(transform.position, 0.5f, transform.forward, out RaycastHit mantleHit, 1f);
 
-        canJump = (GameManager.instance.time > lastJumpTime + jumpDelay) && isGrounded;
         isWallRunningRight = isTouchingWallRight && !isGrounded && InputManager.instance.wasdInputs.x > 0;//We are wall running if we arent grounded, are touching wall, and trying to move into the wall
         isWallRunningLeft = isTouchingWallLeft && !isGrounded && InputManager.instance.wasdInputs.x < 0;
 
@@ -355,9 +356,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
         //if (!GetCanWallJump() && GetIsTouchingWall()) { GetCanWallJump() = true; }
         if (!canMantle && isGrounded) { canMantle = true; }
         if (isGrounded) { currentGroundNormal = groundHit.normal; }
+        if (isGrounded && GetJumpDelayElapsed())
+        {
+            jumps = 1;
+        }
         else { currentGroundNormal = Vector3.zero; }
 
-        Debug.DrawRay(transform.position + new Vector3(0, -1f, 0), Vector3.down * groundedCheckDistance, Color.red);
+        Debug.DrawRay(transform.position + new Vector3(0, groundedCheckOriginOffset, 0), Vector3.down * groundedCheckDistance, isGrounded ? Color.green : Color.red);
         Debug.DrawRay(transform.position + transform.right * wallJumpCheckOriginOffset, transform.right * wallJumpCheckDistance, GetIsTouchingWall() ? Color.green : Color.red);
         Debug.DrawRay(transform.position + transform.right * -wallJumpCheckOriginOffset, transform.right * -wallJumpCheckDistance, GetIsTouchingWall() ? Color.green : Color.red);
         Debug.DrawRay(transform.position, transform.forward, hasMantlePoint ? Color.green : Color.red);
@@ -371,19 +376,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             if (hasMantlePoint && canMantle)
             {
-                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, myView.ViewID);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, 0.9f,myView.ViewID);
                 canMantle = false;
                 rb.AddForce(Vector3.up * mantleForce);
                 anim.SetTrigger("Mantle");
                 //Debug.Log("mantle");
-            }
-            else if (canJump)
-            {
-                rb.AddForce(Vector3.up * jumpForce);
-                AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.15f, myView.ViewID);
-
-                //Debug.Log("jump");
-                anim.SetTrigger("Jump");
             }
             else if (GetIsTouchingWall() && GetCanWallJump())
             {
@@ -395,8 +392,15 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
                 //Debug.Log("walljump");
                 anim.SetTrigger("Jump");
-                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, myView.ViewID);
+                AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f,0.9f, myView.ViewID);
 
+            }
+            else if (GetCanJump())
+            {
+                jumps--;
+                rb.AddForce(Vector3.up * jumpForce);
+                AudioManager.instance.PlaySound(true, jumpAudio, Vector3.zero, 0.15f, 0.9f,myView.ViewID);
+                anim.SetTrigger("Jump");
             }
         }
         if (InputManager.instance.scrollDelta != Vector2.zero)//change  item
@@ -510,7 +514,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (delta < 0 && GameManager.instance.time>lastPainSoundTime+0.1f)
         {
             lastPainSoundTime = GameManager.instance.time;
-            AudioManager.instance.PlaySound(true, painSounds, Vector3.zero, 0.7f, myView.ViewID);
+            AudioManager.instance.PlaySound(true, painSounds, Vector3.zero, 0.7f, UnityEngine.Random.Range(0.9f,1.05f), myView.ViewID);
         }
         if(health<=0) { Die(); }
     }
@@ -545,7 +549,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (GetShouldPlayFootstep() && GameManager.instance.time > lastFootstepTime + footstepDelay)
         {
             lastFootstepTime = GameManager.instance.time;
-            AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, int.MinValue);
+            AudioManager.instance.PlaySound(true, footsteps[UnityEngine.Random.Range(0,footsteps.Length)], transform.position-Vector3.up, 0.075f, 1f, int.MinValue);
         }
     }
     #endregion

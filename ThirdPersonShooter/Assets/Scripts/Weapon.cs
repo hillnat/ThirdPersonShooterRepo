@@ -5,54 +5,60 @@ using Unity.VisualScripting;
 using UnityEngine;
 public enum EWeapons { M4A1, M1911, Shotgun, Tec9, Sniper, RingBlade, RecallDagger }
 
-public class Weapon : MonoBehaviour
+public abstract class Weapon : MonoBehaviour
 {
 
     private PlayerController myPc;
-    public string weaponName = "Weapon";
-    public EWeapons weaponType;
-    public float zoomFov = 60f;
-    [Header("Recoil")]
     public Vector2 currentRecoil = Vector2.zero;
-    public Vector2 xRecoilMinMax = Vector2.zero;
-    public Vector2 yRecoilMinMax = Vector2.zero;
-    public float recoilFadeMultiplier = 20f;//Recoil takes 1sec/this to return to 0
-    public bool pingPongRecoil = false;//Recoil always goes left or right based on if ammo is even or odd. Note you can use yRecoilMax.x as a minimum range if this is true, rather than it being the negative range
-    [Header("Ammo")]
-    public int ammo = 0;
-    public int maxAmmo = 30;
-    [Header("Shooting")]
     private float lastFiredTime = 0;
-    public float fireDelay = 0.05f;
-    public int pelletsPerShot = 1;
-    public float yawSpread = 0;
-    public float pitchSpread = 0;
-    public float maxRange = 1000;
-    public bool isFullAuto = false;
-    public float aimingMoveSpeedModifier = 1f;
-    public float aimingSpreadModifier = 1f;
-    public float headshotModifier = 2f;
-    public bool usesProjectile = false;
-    public string projectilePrefab;
-    private bool hasSpread => yawSpread!=0 && pitchSpread!=0;
-    [Header("Reloading")]
+    public int ammo=0;
     public float reloadStartTime = float.MinValue;
-    public float reloadDelay = 1.5f;
     private bool wasReloading = false;
-    public bool isShotgunReload = false;
-    [Header("Damage")]
-    public float damage = 50f;
-    //[Header("Sound")]
-    public string fireSoundsPath => $"{weaponName}/Fire/";
-    public string reloadSoundsPath => $"{weaponName}/Reload/";
     private AudioClip[] fireSounds;
     private AudioClip[] reloadSounds;
-    public float fireAudioVolumeModifier = 1f;
-    public float reloadAudioVolumeModifier = 1f;
-    [Header("Particles")]
-    public GameObject impactParticles;
-    public GameObject goreParticles;
-    public GameObject bulletTrailFx;
+   
+
+    public bool pingPongRecoil = false;//Recoil always goes left or right based on if ammo is even or odd. Note you can use yRecoilMax.x as a minimum range if this is true, rather than it being the negative range
+
+    private bool usesSpread => yawSpread != 0 && pitchSpread != 0;
+
+
+    public abstract string weaponName { get; }
+    public abstract EWeapons weaponType { get; }
+    //Recoil
+    public abstract Vector2 xRecoilMinMax { get; }
+    public abstract Vector2 yRecoilMinMax { get; }
+    public abstract float recoilFadeMultiplier { get; }//Recoil takes 1sec/this to return to 0
+
+    //Aiming
+    public abstract float zoomFov { get; }
+    public abstract float aimingMoveSpeedModifier { get; }
+    public abstract float aimingSpreadModifier { get; }
+    //Shooting
+    public abstract float damage { get; }
+    public abstract int maxAmmo { get; }
+    public abstract int pelletsPerShot { get; }
+    public abstract float headshotModifier { get; }
+    public abstract float fireDelay { get; }
+    public abstract float yawSpread { get; }
+    public abstract float pitchSpread { get; }
+    public abstract float maxRange { get; }
+    public abstract bool isFullAuto { get; }
+    public abstract bool usesProjectile { get; }
+    public abstract string projectilePrefab { get; }
+    //Reload
+    public abstract float reloadDelay { get; }
+
+    //Audio
+    public abstract string fireSoundsPath { get; }
+    public abstract float fireSoundsVolumeModifier{get; }
+    public abstract Vector2 fireSoundsPitchRange {get; }
+    public abstract string reloadSoundsPath { get; }
+    public abstract float reloadSoundsVolumeModifier { get; }
+    public abstract Vector2 reloadSoundsPitchRange { get; }
+
+    //public abstract float fireAudioVolumeModifier = 1f;
+    //public abstract float reloadAudioVolumeModifier = 1f;
     private AudioClip GetRandomFireSound() { return fireSounds.Length!=0 ? fireSounds[Random.Range(0, fireSounds.Length)] : null; }
     private AudioClip GetRandomReloadSound() { return reloadSounds.Length!=0 ? reloadSounds[Random.Range(0, reloadSounds.Length)] : null; }
 
@@ -63,35 +69,41 @@ public class Weapon : MonoBehaviour
     public float GetReloadTimeLeft() { return GetIsReloading() ? ((int)(((reloadStartTime + reloadDelay) - GameManager.instance.time) * 10f) / 10f) : 0f; }
     public bool GetCanReload() { return !GetIsReloading() && ammo != maxAmmo; }
     public bool GetCanFire() { return GameManager.instance.time > lastFiredTime + fireDelay && ammo>0; }
-    public void Fire(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
+    public virtual void Fire(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
     {
         if (!GetCanFire()) { return; }
-        if (GetIsReloading()) { CancelReload(); }
-   
+        if (GetIsReloading()) { CancelReload(); } 
         ammo--;
         lastFiredTime = GameManager.instance.time;
         //Add recoil
         currentRecoil += GetRandomRecoil();
         //Play sound
-        AudioClip fireAudio = GetRandomFireSound();
-        if (fireAudio != null) { AudioManager.instance.PlaySound(true, fireAudio, muzzlePosition, fireAudioVolumeModifier, myPc.myView.ViewID); }
+        AudioManager.instance.PlaySound(true, GetRandomFireSound(), muzzlePosition, fireSoundsVolumeModifier, Random.Range(fireSoundsPitchRange.x, fireSoundsPitchRange.y),myPc.myView.ViewID);
+
         if (!usesProjectile)
         {
+            bool hitPlayer = false;//Not known yet
+            bool hitAnything = false;//Not known yet
             for (int i = 0; i < pelletsPerShot; i++)
             {
-                float tempYawSpread = yawSpread;
-                float tempPitchSpread = pitchSpread;
-                if (myPc.isAiming)
+                //Cache spread
+                float currentYawSpread = yawSpread;
+                float currentPitchSpread = pitchSpread;
+
+                if (myPc.isAiming)//If aiming, apply modifier to spread
                 {
-                    tempPitchSpread *= aimingSpreadModifier;
-                    tempYawSpread *= aimingSpreadModifier;
+                    currentPitchSpread *= aimingSpreadModifier;
+                    currentYawSpread *= aimingSpreadModifier;
                 }
+                //Calculate vector from camera using spread
                 Vector3 rotatedCamForward =
-                        Quaternion.AngleAxis(Random.Range(-tempYawSpread, tempYawSpread), Vector3.up) *
-                        Quaternion.AngleAxis(Random.Range(-tempPitchSpread, tempPitchSpread), myPc.transform.right) *
+                        Quaternion.AngleAxis(Random.Range(-currentYawSpread, currentYawSpread), Vector3.up) *
+                        Quaternion.AngleAxis(Random.Range(-currentPitchSpread, currentPitchSpread), myPc.transform.right) *
                         cameraForward;//Calculate spread
-                Vector3 camRayDirection = hasSpread ? rotatedCamForward : cameraForward;//If we have spread use it
-                bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Camera ray
+
+                Vector3 camRayDirection = usesSpread ? rotatedCamForward : cameraForward;//Determine which vector to use
+
+                bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Cast main ray from camera
 
                 //Muzzle direction is from the muzzle to the hit point, unless it didnt hit, then to the camera ray end point (so particles still spawn at the end of the ray)
                 Vector3 muzzleDirection =
@@ -100,27 +112,19 @@ public class Weapon : MonoBehaviour
 
                 bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
 
-                ParticleManager.instance.PlayLineFx(true, bulletTrailFx, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
+                ParticleManager.instance.PlayDefaultLineFx(true, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
 
-
+                Debug.DrawRay(cameraOrigin, (usesSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 5f);
+                Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 5f);
                 if (cameraRaySuccess)
                 {
-
-                    Debug.DrawRay(cameraOrigin, (hasSpread ? rotatedCamForward : cameraForward) * 999f, Color.green, 1f);
-                    Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 1f);
-
-
-
-                    float t = hit2.distance / maxRange;
-                    float finalDamage = Mathf.Lerp(damage, 0, t);
-
-                    bool hitPlayer = false;//Not known yet
-                    bool hitAnything = false;//Not known yet
                     if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
                     {
+                        hitAnything = true;
+
                         if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
                         {
-
+                            float finalDamage = Mathf.Lerp(damage, 0, hit2.distance / maxRange);
                             bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
                             if (isHeadshot) { finalDamage *= headshotModifier; }
                             string hitData = "";
@@ -139,20 +143,21 @@ public class Weapon : MonoBehaviour
                                 //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
                             }
                         }
-                        hitAnything = true;
-                    }
-                    if (hitPlayer)
-                    {
-                        ParticleManager.instance.PlayParticle(true, goreParticles, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
-                    }
-                    else if (hitAnything) { ParticleManager.instance.PlayParticle(true, impactParticles, hit2.point, Quaternion.Euler(hit2.normal)); }//Spawn dust
+                    }       
                 }
+                if (hitPlayer)
+                {
+                    ParticleManager.instance.PlayGoreParticles(true, hit2.point, Quaternion.Euler(hit2.normal));//Spawn blood
+                }
+                else if (hitAnything)
+                {
+                    ParticleManager.instance.PlayImpactParticles(true, hit2.point, Quaternion.Euler(hit2.normal));
+                }//Spawn dust
             }
+            
         }
         else
         {
-           // bool cameraRaySuccess = Physics.Raycast(cameraOrigin, cameraForward, out RaycastHit hit1, maxRange);//Camera ray
-
             myPc.SpawnProjectile(projectilePrefab, muzzlePosition, Quaternion.Euler(cameraForward), muzzlePosition+(cameraForward*10000));
         }
     }
@@ -167,7 +172,7 @@ public class Weapon : MonoBehaviour
         reloadStartTime = GameManager.instance.time;
 
         AudioClip reloadAudio = GetRandomReloadSound();
-        if (reloadAudio != null) { AudioManager.instance.PlaySound(true, reloadAudio, Vector3.zero, reloadAudioVolumeModifier, myPc.myView.ViewID); }
+        if (reloadAudio != null) { AudioManager.instance.PlaySound(true, reloadAudio, Vector3.zero, reloadSoundsVolumeModifier, Random.Range(reloadSoundsPitchRange.x,reloadSoundsPitchRange.y),myPc.myView.ViewID); }
 
         if (weaponType == EWeapons.RecallDagger)
         {
@@ -187,7 +192,6 @@ public class Weapon : MonoBehaviour
     {
         wasReloading = false;
         reloadStartTime = float.MinValue;
-        Debug.Log("reload cancelled");
     }
     public void ResetWeapon()
     {
@@ -195,45 +199,38 @@ public class Weapon : MonoBehaviour
         currentRecoil = Vector2.zero;
         if(GetIsReloading() ) {CancelReload();}
     }
+    public void HandleRecoil()
+    {
+        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.deltaTime * recoilFadeMultiplier);
+        if ((currentRecoil.x > 0 && currentRecoil.x < 0.01f) || (currentRecoil.x < 0 && currentRecoil.x > -0.01f)) { currentRecoil.x = 0; }
+        if ((currentRecoil.y > 0 && currentRecoil.y < 0.01f) || (currentRecoil.y < 0 && currentRecoil.y > -0.01f)) { currentRecoil.y = 0; }
+    }
     #region Unity Callbacks
-    private void Awake()
+    public void Awake()
     {
         reloadSounds = Resources.LoadAll<AudioClip>("Audio/"+reloadSoundsPath);
         fireSounds = Resources.LoadAll<AudioClip>("Audio/" + fireSoundsPath);
-        Debug.Log($"{gameObject.name} found {reloadSounds.Length} reload sounds and {fireSounds.Length} fire sounds");
         myPc = transform.root.gameObject.GetComponent<PlayerController>();
     }
-    private void Start()
+    public virtual void CompleteReload()
+    {
+        ammo = maxAmmo;
+        reloadStartTime = float.MinValue;
+    }
+    public void Start()
     {
         ammo = maxAmmo;
     }
-    private void Update()
+    public void Update()
     {
-        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.deltaTime*recoilFadeMultiplier);
-        if ((currentRecoil.x > 0 && currentRecoil.x < 0.01f) || (currentRecoil.x < 0 && currentRecoil.x > -0.01f)) { currentRecoil.x = 0; }
-        if ((currentRecoil.y > 0 && currentRecoil.y < 0.01f) || (currentRecoil.y < 0 && currentRecoil.y > -0.01f)) { currentRecoil.y = 0; }
+        HandleRecoil();
         
         //If we were reloading last frame but arent anymore, the reload has finished
         if (wasReloading && !GetIsReloading()) {
-            if (isShotgunReload)
-            {
-                ammo++;
-            }
-            else
-            {
-                ammo = maxAmmo;
-            }
-            
-            reloadStartTime = float.MinValue;
-            Debug.Log("reload complete");
-            if (isShotgunReload && GetCanReload())
-            {
-                StartReloading();
-                Debug.Log("Shotgun reload");
-            }
+            CompleteReload();
         }
     }
-    private void LateUpdate()
+    public void LateUpdate()
     {
         wasReloading = GetIsReloading();
     }

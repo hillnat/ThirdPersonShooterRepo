@@ -80,10 +80,10 @@ public class BuyMenu : MonoBehaviour
             Cursor.visible = isMenuOpen;
 
         }
-        if (InputManager.instance.openSettings && isMenuOpen)
+        /*if (InputManager.instance.openSettings && isMenuOpen)
         {
             buyMenuCanvas.gameObject.SetActive(false);
-        }
+        }*/
     }
     public void RefreshCurrentWeaponsText()
     {

@@ -1170,7 +1170,7 @@ Transform:
   m_GameObject: {fileID: 4412522881496607905}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.59, y: 2.89, z: -2.73}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1202,9 +1202,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.2
-  m_Height: 1.5282018
+  m_Height: 1.4994063
   m_Direction: 1
-  m_Center: {x: 0, y: -0.23589909, z: 0}
+  m_Center: {x: 0, y: -0.25029683, z: 0}
 --- !u!114 &8170193892177970548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1222,14 +1222,15 @@ MonoBehaviour:
   baseFov: 90
   isAiming: 0
   mouseSensitivty: 25
+  jumps: 2
   allWeapons:
-  - {fileID: 6104432424744385212}
-  - {fileID: 6300326976300325172}
-  - {fileID: 3429899314460814808}
-  - {fileID: 9149648212668785864}
-  - {fileID: 1144719948005291044}
-  - {fileID: 1053282839601202389}
-  - {fileID: 5003972552903439257}
+  - {fileID: 3791000434008228422}
+  - {fileID: 3390020193129792834}
+  - {fileID: 69584051340854803}
+  - {fileID: 3408156391469039132}
+  - {fileID: 5440375182513965255}
+  - {fileID: 3584422617952893446}
+  - {fileID: 585137006726059569}
   heldItem: 0
   heldItemEnum: 2147483647
   currentWeapons: []
@@ -2549,14 +2550,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 341466097536538611}
-  - component: {fileID: 1053282839601202389}
+  - component: {fileID: 3584422617952893446}
   m_Layer: 0
   m_Name: RingBlade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &341466097536538611
 Transform:
   m_ObjectHideFlags: 0
@@ -2573,7 +2574,7 @@ Transform:
   - {fileID: 6461341300426229164}
   m_Father: {fileID: 2275451757252941351}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1053282839601202389
+--- !u!114 &3584422617952893446
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2582,39 +2583,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 6304899277955872397}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 192f02753a7402c46852c2adfa12b0e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Ring Blade
-  weaponType: 5
-  zoomFov: 80
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: 0, y: 0}
-  yRecoilMinMax: {x: 0, y: 0}
-  recoilFadeMultiplier: 0
-  pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 2
-  fireDelay: 0.2
-  pelletsPerShot: 1
-  yawSpread: 0
-  pitchSpread: 0
-  maxRange: 1000
-  isFullAuto: 0
-  aimingMoveSpeedModifier: 1
-  aimingSpreadModifier: 1
-  headshotModifier: 2
-  usesProjectile: 1
-  projectilePrefab: Projectile_RingBlade
   reloadStartTime: -3.4028235e+38
-  reloadDelay: 2.5
-  isShotgunReload: 0
-  damage: 0
-  fireAudioVolumeModifier: 1
-  reloadAudioVolumeModifier: 1
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
+  pingPongRecoil: 0
 --- !u!1 &6601260251674066299
 GameObject:
   m_ObjectHideFlags: 0
@@ -2967,7 +2942,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3404079441372022727}
-  - component: {fileID: 5003972552903439257}
+  - component: {fileID: 585137006726059569}
   m_Layer: 0
   m_Name: RecallDagger
   m_TagString: Untagged
@@ -2991,7 +2966,7 @@ Transform:
   - {fileID: 147846193094768615}
   m_Father: {fileID: 2275451757252941351}
   m_LocalEulerAnglesHint: {x: -76.286, y: 53.022, z: 36.185}
---- !u!114 &5003972552903439257
+--- !u!114 &585137006726059569
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3000,39 +2975,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 6987585252828028236}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 425007435028411439a5a0f2ed2c5547, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Recall Dagger
-  weaponType: 6
-  zoomFov: 80
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: 0, y: 0}
-  yRecoilMinMax: {x: 0, y: 0}
-  recoilFadeMultiplier: 0
-  pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 5
-  fireDelay: 0.15
-  pelletsPerShot: 1
-  yawSpread: 0
-  pitchSpread: 0
-  maxRange: 1000
-  isFullAuto: 1
-  aimingMoveSpeedModifier: 1
-  aimingSpreadModifier: 1
-  headshotModifier: 2
-  usesProjectile: 1
-  projectilePrefab: Projectile_RecallDagger
-  reloadStartTime: -3.402823e+38
-  reloadDelay: 1
-  isShotgunReload: 0
-  damage: 0
-  fireAudioVolumeModifier: 1
-  reloadAudioVolumeModifier: 1
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
+  reloadStartTime: -3.4028235e+38
+  pingPongRecoil: 0
 --- !u!1 &7188341796649259025
 GameObject:
   m_ObjectHideFlags: 0
@@ -4295,11 +4244,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_Name
-      value: Rifle
+      value: M4A1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2642289986099402508, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_Name
@@ -4311,14 +4260,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6104432424744385212}
+      addedObject: {fileID: 3791000434008228422}
   m_SourcePrefab: {fileID: 100100000, guid: da70739f6cde220439538d333791529c, type: 3}
 --- !u!1 &202109354065875013 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
   m_PrefabInstance: {fileID: 1013134763548765460}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6104432424744385212
+--- !u!114 &3791000434008228422
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4327,39 +4276,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 202109354065875013}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dd0a4256e6d14e4da141c0e9e92f94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: M4A1
-  weaponType: 0
-  zoomFov: 60
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.02, y: 0.02}
-  yRecoilMinMax: {x: 0.05, y: 0.1}
-  recoilFadeMultiplier: 18
+  ammo: 0
+  reloadStartTime: -3.4028235e+38
   pingPongRecoil: 0
-  ammo: 30
-  maxAmmo: 30
-  fireDelay: 0.1125
-  pelletsPerShot: 1
-  yawSpread: 0.5
-  pitchSpread: 0.5
-  maxRange: 1000
-  isFullAuto: 1
-  aimingMoveSpeedModifier: 0.7
-  aimingSpreadModifier: 0.1
-  headshotModifier: 2
-  usesProjectile: 0
-  projectilePrefab: 
-  reloadStartTime: 0
-  reloadDelay: 1.5
-  isShotgunReload: 0
-  damage: 14
-  fireAudioVolumeModifier: 0.3
-  reloadAudioVolumeModifier: 0.5
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
 --- !u!4 &686193998713391871 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: da70739f6cde220439538d333791529c, type: 3}
@@ -4479,14 +4402,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3429899314460814808}
+      addedObject: {fileID: 69584051340854803}
   m_SourcePrefab: {fileID: 100100000, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
 --- !u!1 &210110238540135098 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
   m_PrefabInstance: {fileID: 1020944890404947947}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3429899314460814808
+--- !u!114 &69584051340854803
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4495,39 +4418,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 210110238540135098}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 66549de3ada6f2c4580d37ca75b1396d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Shotgun
-  weaponType: 2
-  zoomFov: 60
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.7, y: 0.7}
-  yRecoilMinMax: {x: 0.5, y: 0.7}
-  recoilFadeMultiplier: 20
-  pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 4
-  fireDelay: 0.4
-  pelletsPerShot: 10
-  yawSpread: 4
-  pitchSpread: 4
-  maxRange: 20
-  isFullAuto: 0
-  aimingMoveSpeedModifier: 0.8
-  aimingSpreadModifier: 0.5
-  headshotModifier: 2
-  usesProjectile: 0
-  projectilePrefab: 
-  reloadStartTime: 0
-  reloadDelay: 0.25
-  isShotgunReload: 1
-  damage: 9
-  fireAudioVolumeModifier: 1.5
-  reloadAudioVolumeModifier: 1
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
+  reloadStartTime: -3.4028235e+38
+  pingPongRecoil: 0
+  isShotgunReload: 0
 --- !u!4 &694018931532963840 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
@@ -5989,14 +5887,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1144719948005291044}
+      addedObject: {fileID: 5440375182513965255}
   m_SourcePrefab: {fileID: 100100000, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
 --- !u!1 &3973773404871564019 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
   m_PrefabInstance: {fileID: 4315789892091029410}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1144719948005291044
+--- !u!114 &5440375182513965255
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6005,39 +5903,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3973773404871564019}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 28b201e447159494686636fec0b319d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Sniper
-  weaponType: 4
-  zoomFov: 30
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.1, y: 0.1}
-  yRecoilMinMax: {x: 0.5, y: 0.7}
-  recoilFadeMultiplier: 22
+  ammo: 0
+  reloadStartTime: -3.4028235e+38
   pingPongRecoil: 0
-  ammo: 4
-  maxAmmo: 4
-  fireDelay: 0.75
-  pelletsPerShot: 1
-  yawSpread: 9
-  pitchSpread: 9
-  maxRange: 1000
-  isFullAuto: 0
-  aimingMoveSpeedModifier: 0.5
-  aimingSpreadModifier: 0
-  headshotModifier: 2
-  usesProjectile: 0
-  projectilePrefab: 
-  reloadStartTime: 0
-  reloadDelay: 2.5
-  isShotgunReload: 0
-  damage: 120
-  fireAudioVolumeModifier: 0.2
-  reloadAudioVolumeModifier: 0.2
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
 --- !u!4 &4354555840002506825 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
@@ -6105,7 +5977,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a234a2a52ffc3084882011b65c0238d7, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 9149648212668785864}
+      addedObject: {fileID: 3408156391469039132}
   m_SourcePrefab: {fileID: 100100000, guid: a234a2a52ffc3084882011b65c0238d7, type: 3}
 --- !u!4 &4762902220615384062 stripped
 Transform:
@@ -6117,7 +5989,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a234a2a52ffc3084882011b65c0238d7, type: 3}
   m_PrefabInstance: {fileID: 5013495021522885653}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &9149648212668785864
+--- !u!114 &3408156391469039132
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6126,39 +5998,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 5283543668916134212}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: 275f943c62fbb7f489e449a1e536b46b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Tec9
-  weaponType: 3
-  zoomFov: 60
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.025, y: 0.025}
-  yRecoilMinMax: {x: 0.05, y: 0.075}
-  recoilFadeMultiplier: 17
-  pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 22
-  fireDelay: 0.05
-  pelletsPerShot: 1
-  yawSpread: 3
-  pitchSpread: 3
-  maxRange: 40
-  isFullAuto: 1
-  aimingMoveSpeedModifier: 1
-  aimingSpreadModifier: 1
-  headshotModifier: 1.3
-  usesProjectile: 0
-  projectilePrefab: 
   reloadStartTime: -3.4028235e+38
-  reloadDelay: 1.2
-  isShotgunReload: 0
-  damage: 12
-  fireAudioVolumeModifier: 0.2
-  reloadAudioVolumeModifier: 0.6
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
+  pingPongRecoil: 0
 --- !u!1001 &8539562719413854918
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6233,7 +6079,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6300326976300325172}
+      addedObject: {fileID: 3390020193129792834}
   m_SourcePrefab: {fileID: 100100000, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
 --- !u!4 &8144802192963503405 stripped
 Transform:
@@ -6245,7 +6091,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
   m_PrefabInstance: {fileID: 8539562719413854918}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6300326976300325172
+--- !u!114 &3390020193129792834
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6254,36 +6100,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8810156727796883351}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8f9567485e3984688d8ba541a27533, type: 3}
+  m_Script: {fileID: 11500000, guid: a0b407f005be6cd4fb13e822aa33565b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: M1911
-  weaponType: 1
-  zoomFov: 60
   currentRecoil: {x: 0, y: 0}
-  xRecoilMinMax: {x: -0.2, y: 0.2}
-  yRecoilMinMax: {x: 0.1, y: 0.2}
-  recoilFadeMultiplier: 20
-  pingPongRecoil: 0
   ammo: 0
-  maxAmmo: 8
-  fireDelay: 0.2
-  pelletsPerShot: 1
-  yawSpread: 0
-  pitchSpread: 0
-  maxRange: 1000
-  isFullAuto: 0
-  aimingMoveSpeedModifier: 0.9
-  aimingSpreadModifier: 1
-  headshotModifier: 2
-  usesProjectile: 0
-  projectilePrefab: 
-  reloadStartTime: 0
-  reloadDelay: 1.5
-  isShotgunReload: 0
-  damage: 35
-  fireAudioVolumeModifier: 0.2
-  reloadAudioVolumeModifier: 0.6
-  impactParticles: {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
-  goreParticles: {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
-  bulletTrailFx: {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
+  reloadStartTime: -3.4028235e+38
+  pingPongRecoil: 0

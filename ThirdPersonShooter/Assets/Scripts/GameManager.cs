@@ -33,7 +33,9 @@ public class GameManager : MonoBehaviour
         if (!PhotonNetwork.IsConnected)
         {
             SceneManager.LoadScene("ConnectToMaster");
+            Destroy(this);
         }
+
         PhotonNetwork.SendRate = 25;
         PhotonNetwork.SerializationRate = 50;
         localPlayer = PhotonNetwork.Instantiate("Player", GetRandomSpawn(), Quaternion.identity).GetComponent<PlayerController>();

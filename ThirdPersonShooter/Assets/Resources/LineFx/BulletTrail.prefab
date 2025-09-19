@@ -87,7 +87,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.024391174
+        value: 0.021666668
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -95,10 +95,10 @@ LineRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.74788475
-        value: 0.010703507
-        inSlope: -0.036342274
-        outSlope: -0.036342274
+        time: 0.86225426
+        value: 0.006666667
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
@@ -181,4 +181,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f379f7b0f577894984d4a82fcf8f90d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifetime: 0.4
+  lifetime: 0.25

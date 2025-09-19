@@ -23,6 +23,7 @@ public class Projectile : MonoBehaviour, IPunObservable
     public bool maxBouncesReached => bounces >= maxBounces;
     public bool bouncesOffPlayers = true;
     public AudioClip impactAudio;
+    public Vector2 impactAudioPitchRange = new Vector2(0.9f, 1f);
     public float impactAudioVolumeModifier = 0.05f;
     public bool wantsToFlyToPlayer = false;//Used by return to sender and recall dagger
     public float flyToPlayerSpeed = 25f;
@@ -33,6 +34,7 @@ public class Projectile : MonoBehaviour, IPunObservable
     private Spin spinComponent;
     private Vector3 lastPosition;
     private Vector3 currentPosition;
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (view.IsMine)
@@ -116,7 +118,7 @@ public class Projectile : MonoBehaviour, IPunObservable
     {
         if (view.IsMine)
         {
-            if (!isFrozen)
+            if ((!isFrozen)||(isFrozen&&wantsToFlyToPlayer))
             {
                 currentPosition = transform.position;
                 Vector3 dir = (currentPosition - lastPosition);
@@ -184,6 +186,7 @@ public class Projectile : MonoBehaviour, IPunObservable
         if (targetPc != null && targetPc != owningPc && !hitPcs.Contains(targetPc) && !targetPc.GetIsDead())
         {
             hitPcs.Add(targetPc);
+            ParticleManager.instance.PlayGoreParticles(true, transform.position, transform.rotation);
             targetPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, owningPc.myView.ViewID);
             targetPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -damage);
             //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
@@ -196,8 +199,8 @@ public class Projectile : MonoBehaviour, IPunObservable
         Debug.Log("Collider hit");
 
         if (isFrozen || wantsToFlyToPlayer) { return; }
-        AudioManager.instance.PlaySound(true, impactAudio, transform.position, impactAudioVolumeModifier, int.MinValue);
-
+        AudioManager.instance.PlaySound(true, impactAudio, transform.position, impactAudioVolumeModifier, Random.Range(impactAudioPitchRange.x,impactAudioPitchRange.y), int.MinValue);
+        ParticleManager.instance.PlayImpactParticles(true, transform.position, transform.rotation);
         bounces++;
         HandleBounceBehavior();
     }
@@ -232,7 +235,7 @@ public class Projectile : MonoBehaviour, IPunObservable
         switch (projectileType)
         {
             case EProjectiles.RingBlade:
-                hitPcs.Clear();//Recall dagger can hit again after each bounce
+                hitPcs.Clear();
                 break;
             default: break;
         }

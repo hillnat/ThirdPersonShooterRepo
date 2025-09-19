@@ -71,7 +71,6 @@ public class InputManager : MonoBehaviour
     }
     private void OnJump() { jump = true; }
     private void OnReload() { reload = true; }
-
     private void OnMouse1() { mouse1 = true; }
     private void OnOpenSettings() { openSettings = true; }
     private void OnAlpha1() { alpha1 = true; }

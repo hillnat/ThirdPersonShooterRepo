@@ -20,6 +20,7 @@ public class SettingsManager : MonoBehaviour
     
     public Button exitMatchButton;
     public Button quitGameButton;
+    public Button closeSettingsButton;
     private bool isInGameScene = false;
     private string settingsPath=> Path.Combine(Application.streamingAssetsPath, "SettingsFile.json");
     private bool settingsFileIsDirty = false;
@@ -70,15 +71,17 @@ public class SettingsManager : MonoBehaviour
         {
             exitMatchButton.onClick.RemoveAllListeners();
             exitMatchButton.onClick.AddListener(delegate { ExitMatch(); });
-        }
-            
+        }  
         if (quitGameButton != null)
         {
-
             quitGameButton.onClick.RemoveAllListeners();
             quitGameButton.onClick.AddListener(delegate { QuitGame(); });
         }
-            
+        if (closeSettingsButton != null)
+        {
+            closeSettingsButton.onClick.RemoveAllListeners();
+            closeSettingsButton.onClick.AddListener(delegate { CloseSettings(); });
+        }
 
         //settingsOpen = false;
         mainCanvas.enabled = settingsOpen;
@@ -97,13 +100,7 @@ public class SettingsManager : MonoBehaviour
     {
         if (isInGameScene && InputManager.instance.openSettings)
         {
-            settingsOpen = !settingsOpen;
-
-
-            mainCanvas.enabled = settingsOpen;
-
-            Cursor.visible = settingsOpen;
-            Cursor.lockState = settingsOpen ? CursorLockMode.None : CursorLockMode.Locked; 
+            ToggleSettingsOpen(!settingsOpen);            
         }
         dirtySettingsCheckTimer += Time.deltaTime;
         if (settingsFileIsDirty && dirtySettingsCheckTimer>1f)//Check each second if settings have change and if so save them. This is to get around writing many times when each value is changed like a slider
@@ -112,6 +109,13 @@ public class SettingsManager : MonoBehaviour
             dirtySettingsCheckTimer = 0;
             WriteSettingsFile();
         }
+    }
+    public void ToggleSettingsOpen(bool state)
+    {
+        settingsOpen = state;
+        mainCanvas.enabled = state;
+        Cursor.visible = state;
+        Cursor.lockState = state ? CursorLockMode.None : CursorLockMode.Locked;
     }
     public void OnMasterVolumeChanged() {
         settingsFile.masterVolume = Mathf.Clamp(masterVolumeSlider.value,0f,1f);
@@ -178,6 +182,10 @@ public class SettingsManager : MonoBehaviour
         string json = JsonUtility.ToJson(settingsFile, true); // pretty print
         File.WriteAllText(settingsPath, json);
         Debug.Log("Wrote settings");
+    }
+    public void CloseSettings()
+    {
+        ToggleSettingsOpen(false);
     }
 }
 [System.Serializable]

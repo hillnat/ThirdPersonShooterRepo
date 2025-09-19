@@ -41,28 +41,29 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public void PlaySound(bool isNetworked, AudioClip audioClip, Vector3 position, float volume, int followViewID)//Universal call
+    public void PlaySound(bool isNetworked, AudioClip audioClip, Vector3 position, float volume, float pitch, int followViewID)//Universal call
     {
         if (audioClip == null) { Debug.LogWarning("PlaySound:: Sound was null"); return; }
         int clipIndex = clipToIndex[audioClip];
-        SpawnSound(clipIndex,position,volume,followViewID);//Play instantly for us
+        SpawnSound(clipIndex,position,volume,pitch,followViewID);//Play instantly for us
         if (isNetworked)//Network if wanted
         {
-            myView.RPC(nameof(RPC_SpawnSound), RpcTarget.Others, clipIndex, position, volume, followViewID);
+            myView.RPC(nameof(RPC_SpawnSound), RpcTarget.Others, clipIndex, position, volume,pitch, followViewID);
         }
     }
 
     [PunRPC]
-    public void RPC_SpawnSound(int clipIndex, Vector3 position, float volume, int followViewID)//Just call normal spawn sound
+    public void RPC_SpawnSound(int clipIndex, Vector3 position, float volume,float pitch, int followViewID)//Just call normal spawn sound
     {
-        SpawnSound(clipIndex, position, volume, followViewID);
+        SpawnSound(clipIndex, position, volume,pitch, followViewID);
     }
-    private void SpawnSound(int clipIndex, Vector3 position, float volume, int followViewID)//Actual finding of emitter and playing of sound
+    private void SpawnSound(int clipIndex, Vector3 position, float volume, float pitch, int followViewID)//Actual finding of emitter and playing of sound
     {
         AudioEmitter myEmitter = GetFreeEmitter();
         if (myEmitter == null) { return; }
         
         myEmitter.aS.volume = volume * masterVolumeMultiplier;
+        myEmitter.aS.pitch = pitch;
         myEmitter.aS.PlayOneShot(clipList[clipIndex]);
 
         if (followViewID != int.MinValue)

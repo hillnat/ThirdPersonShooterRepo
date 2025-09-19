@@ -7,12 +7,15 @@ public class ParticleManager : MonoBehaviour
 {
     public static ParticleManager instance;
     public PhotonView myView;
-    private GameObject[] particleFxList;
-    private GameObject[] lineFxList;
-    private Dictionary<GameObject, int> particleToIndex = new Dictionary<GameObject, int>();
-    private Dictionary<GameObject, int> lineFxToIndex = new Dictionary<GameObject, int>();
+    public GameObject[] particleFxList;
+    public GameObject[] lineFxList;
+    public Dictionary<GameObject, int> particleToIndex = new Dictionary<GameObject, int>();
+    public Dictionary<GameObject, int> lineFxToIndex = new Dictionary<GameObject, int>();
     public GameObject damageNumber;
 
+    public List<GameObject> goreParticles;
+    public List<GameObject> impactParticles;
+    public List<GameObject> defaultLineFx;
     private void Awake()
     {
         if (instance == null)
@@ -40,7 +43,16 @@ public class ParticleManager : MonoBehaviour
             lineFxToIndex[lineFxList[i]] = i;
         }
     }
-    public void PlayParticle(bool isNetworked, GameObject particle, Vector3 position, Quaternion rotation)
+    public void PlayGoreParticles(bool isNetworked, Vector3 position, Quaternion rotation)
+    {
+        PlayParticle(isNetworked, goreParticles[Random.Range(0, goreParticles.Count)], position, rotation);
+    }
+    public void PlayImpactParticles(bool isNetworked, Vector3 position, Quaternion rotation)
+    {
+        PlayParticle(isNetworked, impactParticles[Random.Range(0, impactParticles.Count)], position, rotation);
+    }
+    #region Particle Spawning
+    public void PlayParticle(bool isNetworked, GameObject particle, Vector3 position, Quaternion rotation)//Call this one
     {
         if (particle == null) { return; }
         int particleIndex = particleToIndex[particle];
@@ -50,6 +62,8 @@ public class ParticleManager : MonoBehaviour
             myView.RPC(nameof(RPC_SpawnParticle), RpcTarget.Others, particleIndex, position, rotation);
         }
     }
+
+
     [PunRPC]
     public void RPC_SpawnParticle(int particleIndex, Vector3 position, Quaternion rotation)
     {
@@ -60,8 +74,12 @@ public class ParticleManager : MonoBehaviour
         Instantiate(particleFxList[particleIndex], position, rotation);
     }
 
-
-
+    #endregion
+    #region Line FX
+    public void PlayDefaultLineFx(bool isNetworked, Vector3[] positions)
+    {
+        PlayLineFx(isNetworked, defaultLineFx[Random.Range(0, defaultLineFx.Count)], positions);
+    }
     public void PlayLineFx(bool isNetworked, GameObject lineFx, Vector3[] positions)
     {
         if (lineFx == null) { return; }
@@ -83,6 +101,7 @@ public class ParticleManager : MonoBehaviour
         if (lr == null) { return; }
         lr.SetPositions(positions);
     }
+    #endregion
     public void SpawnDamageNumber(Vector3 position, float number)
     {
         DamageNumber dm = Instantiate(damageNumber, position, Quaternion.identity).GetComponent<DamageNumber>();

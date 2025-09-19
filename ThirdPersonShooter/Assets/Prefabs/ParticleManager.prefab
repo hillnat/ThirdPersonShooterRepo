@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6881114532637385471}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -47,6 +47,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myView: {fileID: 0}
   damageNumber: {fileID: 8500041459645476879, guid: 19b1dc69104746646bb1c7ed0c4faaa9, type: 3}
+  goreParticles:
+  - {fileID: 1834194341294532, guid: 027a9712b5ae39a498975ed410edb118, type: 3}
+  impactParticles:
+  - {fileID: 2580178821153578830, guid: 8d4ff324e07afd14cb3c66fea52870ac, type: 3}
+  defaultLineFx:
+  - {fileID: 6298590913616178864, guid: b781db05ee0c2384c9a4bc149a6f87dd, type: 3}
 --- !u!114 &7647826289217990335
 MonoBehaviour:
   m_ObjectHideFlags: 0
