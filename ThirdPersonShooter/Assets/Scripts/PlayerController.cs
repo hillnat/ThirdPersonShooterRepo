@@ -50,10 +50,10 @@ public class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Wall Jumping")]
     private const float wallJumpCheckDistance = 1f;
     private const float wallJumpCheckOriginOffset = 0.1f;
-    private bool GetCanWallJump() { return GetIsTouchingWall() && GetWallJumpDelayElapsed(); }
-    private const float wallJumpForce = 1400f;
+    private bool GetCanWallJump() { return GetIsTouchingWall() && GetWallJumpDelayElapsed() && ((InputManager.instance.wasdInputs.x > 0 && isTouchingWallLeft) || (InputManager.instance.wasdInputs.x < 0 && isTouchingWallRight)); }
+    private const float wallJumpForce = 1200f;
     private float lastWallJumpTime = float.MinValue;
-    private const float wallJumpDelay = 0.5f;
+    private const float wallJumpDelay = 1f;
     private bool GetWallJumpDelayElapsed() { return GameManager.instance.time > lastWallJumpTime + wallJumpDelay; }
     //[Header("Mantling")]
     private bool hasMantlePoint = false;
@@ -203,6 +203,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             stream.SendNext((int)heldItemEnum);
             stream.SendNext(cameraParent.transform.eulerAngles);
+            stream.SendNext(health);
         }
         else
         {
@@ -213,6 +214,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 RefreshWeaponMeshes();
             }
             cameraParent.transform.eulerAngles = (Vector3)stream.ReceiveNext();
+            health = (float)stream.ReceiveNext();
         }
     }
     #endregion
@@ -335,7 +337,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (InputManager.instance.wasdInputs != Vector2.zero && !BuyMenu.instance.isMenuOpen)
         {
             float aimMoveSpeedMod = (isAiming ? GetWeapon().aimingMoveSpeedModifier : 1f);
-            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (GetIsWallRunning() ? 3f : 1f) * aimMoveSpeedMod;
+            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * (GetIsWallRunning() ? 1.5f : 1f) * aimMoveSpeedMod;
             Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x * moveSpeed * (GetIsWallRunning() ? 0f : 1f) * aimMoveSpeedMod;
             Vector3 movementVector = Vector3.ProjectOnPlane((forwardVector + rightVector), currentGroundNormal);
             rb.AddForce(movementVector*Time.fixedDeltaTime);
@@ -374,7 +376,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (InputManager.instance.jump && !BuyMenu.instance.isMenuOpen)
         {
-            if (hasMantlePoint && canMantle)
+            /*if (hasMantlePoint && canMantle)
             {
                 AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f, 0.9f,myView.ViewID);
                 canMantle = false;
@@ -382,7 +384,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 anim.SetTrigger("Mantle");
                 //Debug.Log("mantle");
             }
-            else if (GetIsTouchingWall() && GetCanWallJump())
+            else */if (GetIsTouchingWall() && GetCanWallJump())
             {
                 lastWallJumpTime = GameManager.instance.time;
                 //rb.AddForce(transform.forward * InputManager.instance.wasdInputs.y * wallJumpForce * 0.2f);

@@ -122,7 +122,7 @@ public abstract class Weapon : MonoBehaviour
                     {
                         hitAnything = true;
 
-                        if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc)//Hit player
+                        if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc && !hitPc.GetIsDead())//Hit player
                         {
                             float finalDamage = Mathf.Lerp(damage, 0, hit2.distance / maxRange);
                             bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
@@ -142,6 +142,11 @@ public abstract class Weapon : MonoBehaviour
                                 hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
                                 //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
                             }
+
+                            if (isHeadshot)
+                            {
+                                AudioManager.instance.PlayHeadshotSound(true, hit2.point, 1f, 1f, int.MinValue);
+                            }
                         }
                     }       
                 }
@@ -158,7 +163,7 @@ public abstract class Weapon : MonoBehaviour
         }
         else
         {
-            myPc.SpawnProjectile(projectilePrefab, muzzlePosition, Quaternion.Euler(cameraForward), muzzlePosition+(cameraForward*10000));
+            myPc.SpawnProjectile(projectilePrefab, muzzlePosition, Quaternion.Euler(cameraForward), muzzlePosition+(cameraForward*10));
         }
     }
     public void IncrementAmmo(int delta)

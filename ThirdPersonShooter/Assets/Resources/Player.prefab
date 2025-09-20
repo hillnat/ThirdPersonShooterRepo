@@ -861,7 +861,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7667251670492473187}
   - component: {fileID: 3741602734041896601}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HeadPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -902,8 +902,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.12
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.175
+  m_Center: {x: 0, y: -0.05, z: 0}
 --- !u!1 &3612376030910676891
 GameObject:
   m_ObjectHideFlags: 0
@@ -1201,10 +1201,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.2
-  m_Height: 1.4994063
+  m_Radius: 0.15
+  m_Height: 1.4176702
   m_Direction: 1
-  m_Center: {x: 0, y: -0.25029683, z: 0}
+  m_Center: {x: 0, y: -0.29116488, z: 0}
 --- !u!114 &8170193892177970548
 MonoBehaviour:
   m_ObjectHideFlags: 0

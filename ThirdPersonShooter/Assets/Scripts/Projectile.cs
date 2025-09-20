@@ -1,7 +1,8 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
+using static UnityEngine.GraphicsBuffer;
 
 public enum EProjectiles { RingBlade, Arrow, RecallDagger }
 public class Projectile : MonoBehaviour, IPunObservable
@@ -122,7 +123,7 @@ public class Projectile : MonoBehaviour, IPunObservable
             {
                 currentPosition = transform.position;
                 Vector3 dir = (currentPosition - lastPosition);
-                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.25f, dir.normalized, dir.magnitude);
+                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.05f, dir.normalized, dir.magnitude);
                 Debug.DrawRay(lastPosition, dir, Color.yellow, 5f);
                 //Debug.DrawLine(lastPosition, currentPosition, Color.red, 5f);
                 for (int i = 0; i < hits.Length; i++)
@@ -131,7 +132,7 @@ public class Projectile : MonoBehaviour, IPunObservable
                     bool didHitPlayer = false;
                     bool isHeadshot = hits[i].collider.GetType() == typeof(SphereCollider);
 
-                    if (hitPc != null) { didHitPlayer = TryDealDamageToPc(hitPc, baseDamage * (isHeadshot? headshotMultiplier : 1f)); }
+                    if (hitPc != null && hitPc != owningPc && !hitPcs.Contains(hitPc) && !hitPc.GetIsDead()) { didHitPlayer = TryDealDamageToPc(hitPc, baseDamage * (isHeadshot? headshotMultiplier : 1f), isHeadshot, hits[i].point); }
 
                     if (didHitPlayer && bouncesOffPlayers)
                     {
@@ -179,7 +180,7 @@ public class Projectile : MonoBehaviour, IPunObservable
     {
         mainCollider.enabled = state;
     }
-    public bool TryDealDamageToPc(PlayerController targetPc, float damage)
+    public bool TryDealDamageToPc(PlayerController targetPc, float damage, bool isHeadshot, Vector3 impactPos)
     {
         bool didHitPlayer = false;
         
@@ -189,6 +190,7 @@ public class Projectile : MonoBehaviour, IPunObservable
             ParticleManager.instance.PlayGoreParticles(true, transform.position, transform.rotation);
             targetPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, owningPc.myView.ViewID);
             targetPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -damage);
+            if (isHeadshot) { AudioManager.instance.PlayHeadshotSound(true, impactPos, 1f, 1f, int.MinValue); }
             //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
             didHitPlayer = true;
         }
@@ -199,6 +201,7 @@ public class Projectile : MonoBehaviour, IPunObservable
         Debug.Log("Collider hit");
 
         if (isFrozen || wantsToFlyToPlayer) { return; }
+        if (collision.gameObject.transform.root.GetComponent<PlayerController>()) { return; }
         AudioManager.instance.PlaySound(true, impactAudio, transform.position, impactAudioVolumeModifier, Random.Range(impactAudioPitchRange.x,impactAudioPitchRange.y), int.MinValue);
         ParticleManager.instance.PlayImpactParticles(true, transform.position, transform.rotation);
         bounces++;

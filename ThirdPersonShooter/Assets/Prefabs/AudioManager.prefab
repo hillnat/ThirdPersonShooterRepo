@@ -94,6 +94,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myView: {fileID: 5432947140555422785}
   masterVolumeMultiplier: 1
+  headshotSounds:
+  - {fileID: 8300000, guid: 9ae8e61753f742447bc6b46c9667075e, type: 3}
 --- !u!114 &5432947140555422785
 MonoBehaviour:
   m_ObjectHideFlags: 0

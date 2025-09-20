@@ -11,19 +11,19 @@ public class M4A1 : Weapon
 
     public override float zoomFov => 70f;
 
-    public override Vector2 xRecoilMinMax => new Vector2(-0.1f, 0.1f);
+    public override Vector2 xRecoilMinMax => new Vector2(-0.05f, 0.05f);
 
-    public override Vector2 yRecoilMinMax => new Vector2(0,0.1f);
+    public override Vector2 yRecoilMinMax => new Vector2(0,0.2f);
 
     public override float recoilFadeMultiplier => 20f;
 
     public override int maxAmmo => 30;
 
-    public override float fireDelay => 0.07f;
+    public override float fireDelay => 0.09f;
 
-    public override float yawSpread => 2;
+    public override float yawSpread => 3;
 
-    public override float pitchSpread => 2;
+    public override float pitchSpread => 3;
 
     public override float maxRange => 1000;
 
@@ -31,13 +31,13 @@ public class M4A1 : Weapon
 
     public override float aimingMoveSpeedModifier => 0.7f;
 
-    public override float aimingSpreadModifier => 0.5f;
+    public override float aimingSpreadModifier => 0.2f;
 
-    public override float headshotModifier => 2f;
+    public override float headshotModifier => 1.3f;
 
     public override float reloadDelay => 1.5f;
 
-    public override float damage => 17f;
+    public override float damage => 11f;
 
     public override string fireSoundsPath => $"{weaponName}/Fire/";
 

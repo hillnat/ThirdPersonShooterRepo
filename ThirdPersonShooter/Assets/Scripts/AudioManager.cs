@@ -11,6 +11,8 @@ public class AudioManager : MonoBehaviour
     private List<AudioEmitter> emitters = new List<AudioEmitter>();
     private Dictionary<AudioClip, int> clipToIndex = new Dictionary<AudioClip, int>();
     public float masterVolumeMultiplier=1f;
+
+    public List<AudioClip> headshotSounds = new List<AudioClip>();
     private void Awake()
     {
         if (instance == null)
@@ -40,7 +42,10 @@ public class AudioManager : MonoBehaviour
             Debug.Log("Found audio clip " + clipList[i].name);
         }
     }
-
+    public void PlayHeadshotSound(bool isNetworked, Vector3 position, float volume, float pitch, int followViewID)
+    {
+        PlaySound(isNetworked, headshotSounds[Random.Range(0, headshotSounds.Count)], position, volume, pitch, followViewID);
+    }
     public void PlaySound(bool isNetworked, AudioClip audioClip, Vector3 position, float volume, float pitch, int followViewID)//Universal call
     {
         if (audioClip == null) { Debug.LogWarning("PlaySound:: Sound was null"); return; }

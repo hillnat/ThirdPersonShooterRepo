@@ -34,7 +34,7 @@ public class Sniper : Weapon
 
     public override float headshotModifier => 4f;
 
-    public override float reloadDelay => 1.5f;
+    public override float reloadDelay => 2f;
 
     public override float damage => 30f;
 
