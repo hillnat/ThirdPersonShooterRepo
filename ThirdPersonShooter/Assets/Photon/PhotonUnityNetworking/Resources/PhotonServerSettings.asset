@@ -47,6 +47,8 @@ MonoBehaviour:
   - RPC_AddDeaths
   - RPC_AddKills
   - RPC_SetLastHitBy
+  - SyncUsername
+  - AddKillfeedElement
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

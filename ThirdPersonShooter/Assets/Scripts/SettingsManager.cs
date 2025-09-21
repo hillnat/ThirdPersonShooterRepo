@@ -152,6 +152,15 @@ public class SettingsManager : MonoBehaviour
         settingsFile.username = usernameInputField.text;
         usernameInputField.text = $"{settingsFile.username}";
         settingsFileIsDirty = true;
+
+        if (isInGameScene)
+        {
+            GameManager.instance.localPlayer.username = GetUsername();
+        }
+    }
+    public string GetUsername()
+    {
+        return settingsFile.username;
     }
     public void ExitMatch()
     {

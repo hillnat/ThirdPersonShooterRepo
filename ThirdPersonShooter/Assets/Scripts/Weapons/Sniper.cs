@@ -10,9 +10,9 @@ public class Sniper : Weapon
 
     public override float zoomFov =>30f;
 
-    public override Vector2 xRecoilMinMax => new Vector2(-0.5f, 0.5f);
+    public override Vector2 xRecoilMinMax => new Vector2(-0.2f, 0.2f);
 
-    public override Vector2 yRecoilMinMax => new Vector2(0, 0.5f);
+    public override Vector2 yRecoilMinMax => new Vector2(0, 0.1f);
 
     public override float recoilFadeMultiplier => 20f;
 

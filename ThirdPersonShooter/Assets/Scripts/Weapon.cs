@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -16,7 +17,7 @@ public abstract class Weapon : MonoBehaviour
     private bool wasReloading = false;
     private AudioClip[] fireSounds;
     private AudioClip[] reloadSounds;
-   
+    private LayerMask hitLayerMask = new LayerMask();
 
     public bool pingPongRecoil = false;//Recoil always goes left or right based on if ammo is even or odd. Note you can use yRecoilMax.x as a minimum range if this is true, rather than it being the negative range
 
@@ -102,15 +103,16 @@ public abstract class Weapon : MonoBehaviour
                         cameraForward;//Calculate spread
 
                 Vector3 camRayDirection = usesSpread ? rotatedCamForward : cameraForward;//Determine which vector to use
+                Physics.queriesHitBackfaces = true;
 
-                bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange);//Cast main ray from camera
+                bool cameraRaySuccess = Physics.Raycast(cameraOrigin, camRayDirection, out RaycastHit hit1, maxRange, hitLayerMask);//Cast main ray from camera
 
                 //Muzzle direction is from the muzzle to the hit point, unless it didnt hit, then to the camera ray end point (so particles still spawn at the end of the ray)
                 Vector3 muzzleDirection =
                     (hit1.point -
                     muzzlePosition).normalized;
-
                 bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange);//Muzzle ray
+                Physics.queriesHitBackfaces = false;
 
                 ParticleManager.instance.PlayDefaultLineFx(true, new Vector3[] { muzzlePosition, !cameraRaySuccess ? cameraOrigin + camRayDirection * maxRange : hit2.point });
 
@@ -118,7 +120,7 @@ public abstract class Weapon : MonoBehaviour
                 Debug.DrawLine(muzzlePosition, hit1.point, Color.yellow, 5f);
                 if (cameraRaySuccess)
                 {
-                    if (muzzleRaySuccess  /*&& cameraRaySuccess &&(hit1.transform == hit2.transform)*/)
+                    if (muzzleRaySuccess)
                     {
                         hitAnything = true;
 
@@ -225,6 +227,8 @@ public abstract class Weapon : MonoBehaviour
     public void Start()
     {
         ammo = maxAmmo;
+        string[] masks = new string[2] { "Default", "Player" };
+        hitLayerMask = LayerMask.GetMask(masks);
     }
     public void Update()
     {

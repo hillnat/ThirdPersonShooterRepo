@@ -483,9 +483,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1823860067670558029}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 910.2755, y: 490.95996}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 900.8, y: -413.3}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9102101053388744392
@@ -1201,7 +1201,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.15
+  m_Radius: 0.225
   m_Height: 1.4176702
   m_Direction: 1
   m_Center: {x: 0, y: -0.29116488, z: 0}
@@ -1217,7 +1217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9048b8ba6904d14899bb15e438d6968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraOffset: {x: 0.36, y: 0.5, z: -0.86}
+  cameraOffset: {x: 0.45, y: 0.5, z: -0.86}
   cameraParent: {fileID: 6744255154447774039}
   baseFov: 90
   isAiming: 0
@@ -4248,7 +4248,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2642289986099402508, guid: da70739f6cde220439538d333791529c, type: 3}
       propertyPath: m_Name
@@ -4302,15 +4302,15 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 468b2d8d6ff9e8a4cb60cadc55d55497, type: 2}
     - target: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.46360198
+      value: 0.363
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.2402558
+      value: 0.239
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.17680535
+      value: -0.139
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: df09d73985e471a40ad325e1799a8f33, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4662,16 +4662,32 @@ PrefabInstance:
       value: -0.06153476
       objectReference: {fileID: 0}
     - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.4908032
+      objectReference: {fileID: 0}
+    - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.61076367
+      objectReference: {fileID: 0}
+    - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.35458836
+      objectReference: {fileID: 0}
+    - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5102422
+      objectReference: {fileID: 0}
+    - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 65.90269
+      value: 74.025
       objectReference: {fileID: 0}
     - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 133.09515
+      value: 89.486
       objectReference: {fileID: 0}
     - target: {fileID: -5096093442502539107, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -159.52235
+      value: -194.244
       objectReference: {fileID: 0}
     - target: {fileID: -5087337570906576444, guid: f02424359a723cc41bb29c7dbde6b7cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -5645,6 +5661,9 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 2
     Name: Aiming
+  - Type: 9
+    SynchronizeType: 2
+    Name: WallJump
   m_SynchronizeLayers:
   - SynchronizeType: 1
     LayerIndex: 0

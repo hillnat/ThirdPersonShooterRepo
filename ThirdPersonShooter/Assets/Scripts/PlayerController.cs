@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Animator anim;
     private CapsuleCollider col;
     [Header("Movement")]
-    private const float moveSpeed = 2000f;
+    private const float moveSpeed = 2250f;
     //Header("Footsteps")]
     public bool GetShouldPlayFootstep() { return (isGrounded || GetIsWallRunning()) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f; }
     private float lastFootstepTime = 0f;
@@ -32,7 +33,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public int jumps = 1;
     private float lastJumpTime = 0f;
     private const float jumpDelay = 0.5f;
-    private const float fakeGravity = 2600f;
+    private const float fakeGravity = 3000f;
     public bool GetJumpDelayElapsed() { return GameManager.instance.time > lastJumpTime + jumpDelay; }
     public bool GetCanJump() { return GetJumpDelayElapsed() && jumps>0; }
     //[Header("Ground Checks")]
@@ -98,6 +99,18 @@ public class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Shooting")]
     public List<Projectile> ownedProjectiles;
     public Transform muzzlePoint;
+
+    public string username
+    {
+        get { return _username; }
+        set { _username = value; if (myView != null) { myView.RPC(nameof(SyncUsername), RpcTarget.AllBufferedViaServer, value); } }
+    }
+    private string _username="";
+    [PunRPC]
+    public void SyncUsername(string newUsername)
+    {
+        _username = newUsername;//Make sure to use _username to avoid RPC loop
+    }
 
     #region Weapon
     public Weapon? GetWeapon()
@@ -245,14 +258,21 @@ public class PlayerController : MonoBehaviour, IPunObservable
     }
     void Start()
     {
-        health = 100;
+        if (isMine) {
+            health = 100;
+            
+            RefreshKdaText();
+            ResetAllWeapons();
+            mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
+            GameManager.instance.view.RPC(nameof(GameManager.RPC_RefreshPlayerList), RpcTarget.All);//Tell GM to update player list once we have spawned
+            footsteps = Resources.LoadAll<AudioClip>("Audio/" + footstepSoundsPath);
+            username = SettingsManager.instance.settingsFile.username;
+
+            gameObject.layer = LayerMask.NameToLayer("LocalPlayer");
+            headPoint.gameObject.layer = LayerMask.NameToLayer("LocalPlayer");
+        }
         RefreshWeaponMeshes();
         ToggleAllWeaponMeshes(false);
-        RefreshKdaText();
-        ResetAllWeapons();
-        mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
-        GameManager.instance.view.RPC(nameof(GameManager.RPC_RefreshPlayerList), RpcTarget.All);//Tell GM to update player list once we have spawned
-        footsteps = Resources.LoadAll<AudioClip>("Audio/" + footstepSoundsPath);
     }
 
     void Update()
@@ -393,7 +413,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 rb.AddForce(Vector3.up * jumpForce);
 
                 //Debug.Log("walljump");
-                anim.SetTrigger("Jump");
+                anim.SetTrigger("WallJump");
                 AudioManager.instance.PlaySound(true, jump2Audio, Vector3.zero, 0.15f,0.9f, myView.ViewID);
 
             }
@@ -573,11 +593,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             PhotonView.Find(lastHitByViewId).RPC(nameof(RPC_AddKills), RpcTarget.AllBuffered, 1);//Add kill to killer
         }
+        KillfeedManager.instance.view.RPC(nameof(KillfeedManager.AddKillfeedElement), RpcTarget.All, lastHitByViewId, myView.ViewID);
         health = 0;
         lastDeathTime = GameManager.instance.time;
         ResetAllWeapons();
-        col.height = 0.3f;
-        lastHitByViewId = int.MinValue;
+        col.height = 0.1f;
     }
     public void Respawn()
     {
