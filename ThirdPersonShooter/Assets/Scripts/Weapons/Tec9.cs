@@ -71,4 +71,8 @@ public class Tec9 : Weapon
     {
         base.LateUpdate();
     }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
 }

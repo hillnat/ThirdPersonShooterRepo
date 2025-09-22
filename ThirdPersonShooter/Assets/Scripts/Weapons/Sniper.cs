@@ -10,11 +10,11 @@ public class Sniper : Weapon
 
     public override float zoomFov =>30f;
 
-    public override Vector2 xRecoilMinMax => new Vector2(-0.2f, 0.2f);
+    public override Vector2 xRecoilMinMax => new Vector2(-0.02f, 0.02f);
 
-    public override Vector2 yRecoilMinMax => new Vector2(0, 0.1f);
+    public override Vector2 yRecoilMinMax => new Vector2(0.1f, 0.125f);
 
-    public override float recoilFadeMultiplier => 20f;
+    public override float recoilFadeMultiplier => 25f;
 
     public override int maxAmmo => 4;
 
@@ -34,7 +34,7 @@ public class Sniper : Weapon
 
     public override float headshotModifier => 4f;
 
-    public override float reloadDelay => 2f;
+    public override float reloadDelay => 2.25f;
 
     public override float damage => 30f;
 
@@ -70,5 +70,9 @@ public class Sniper : Weapon
     private void LateUpdate()
     {
         base.LateUpdate();
+    }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
     }
 }

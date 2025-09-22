@@ -71,4 +71,8 @@ public class RingBlade : Weapon
     {
         base.LateUpdate();
     }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
 }

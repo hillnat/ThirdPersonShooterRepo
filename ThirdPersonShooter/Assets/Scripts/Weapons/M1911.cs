@@ -10,11 +10,11 @@ public class M1911 : Weapon
 
     public override float zoomFov => 70f;
 
-    public override Vector2 xRecoilMinMax => new Vector2(-0.2f, 0.2f);
+    public override Vector2 xRecoilMinMax => new Vector2(-0.05f, 0.05f);
 
     public override Vector2 yRecoilMinMax => new Vector2(0, 0.2f);
 
-    public override float recoilFadeMultiplier => 20f;
+    public override float recoilFadeMultiplier => 22f;
 
     public override int maxAmmo => 7;
 
@@ -26,7 +26,7 @@ public class M1911 : Weapon
 
     public override float maxRange => 500;
 
-    public override bool isFullAuto => true;
+    public override bool isFullAuto => false;
 
     public override float aimingMoveSpeedModifier => 0.9f;
 
@@ -70,5 +70,9 @@ public class M1911 : Weapon
     private void LateUpdate()
     {
         base.LateUpdate();
+    }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
     }
 }

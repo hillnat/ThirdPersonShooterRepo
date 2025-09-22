@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
 
         PhotonNetwork.SendRate = 25;
         PhotonNetwork.SerializationRate = 50;
-        localPlayer = PhotonNetwork.Instantiate("Player", GetRandomSpawn(), Quaternion.identity).GetComponent<PlayerController>();
+        localPlayer = PhotonNetwork.Instantiate("CharacterSniper", GetRandomSpawn(), Quaternion.identity).GetComponent<PlayerController>();
         RPC_RefreshPlayerList();
     }
     public Vector3 GetRandomSpawn()

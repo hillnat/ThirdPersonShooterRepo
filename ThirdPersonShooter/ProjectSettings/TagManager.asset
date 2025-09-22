@@ -5,6 +5,14 @@ TagManager:
   serializedVersion: 2
   tags:
   - Spawns
+  - CameraParent
+  - MuzzlePoint
+  - HeadPoint
+  - PlayerHudUi
+  - PlayerHud_AmmoText
+  - PlayerHud_HealthText
+  - PlayerHud_ReloadIndicator
+  - ItemMesh
   layers:
   - Default
   - TransparentFX

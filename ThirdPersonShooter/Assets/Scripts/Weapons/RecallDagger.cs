@@ -71,4 +71,8 @@ public class RecallDagger : Weapon
     {
         base.LateUpdate();
     }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
 }

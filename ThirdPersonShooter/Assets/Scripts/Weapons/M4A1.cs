@@ -75,4 +75,8 @@ public class M4A1 : Weapon
     {
         base.LateUpdate();
     }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
 }

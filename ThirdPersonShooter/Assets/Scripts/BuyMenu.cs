@@ -1,4 +1,4 @@
-using System.Collections;
+/*using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using TMPro;
@@ -80,23 +80,23 @@ public class BuyMenu : MonoBehaviour
             Cursor.visible = isMenuOpen;
 
         }
-        /*if (InputManager.instance.openSettings && isMenuOpen)
+        //if (InputManager.instance.openSettings && isMenuOpen)
         {
-            buyMenuCanvas.gameObject.SetActive(false);
-        }*/
+           // buyMenuCanvas.gameObject.SetActive(false);
+       // }
     }
     public void RefreshCurrentWeaponsText()
     {
         if (currentWeaponsText == null) { return; }
         PlayerController pc = GameManager.instance.localPlayer;
         if (pc == null) {return; }
-        string newText= $"Weapons ({pc.currentWeapons.Count}/{pc.maxWeapons}):\n";
+        string newText= $"Weapons ({pc.currentItems.Count}/{pc.maxItems}):\n";
         
-        for(int i=0; i<pc.currentWeapons.Count; i++)
+        for(int i=0; i<pc.currentItems.Count; i++)
         {
-            newText += pc.currentWeapons[i].weaponName + "\n";
+            newText += pc.currentItems[i].weaponName + "\n";
         }
-        if (pc.currentWeapons.Count == pc.maxWeapons) { newText += "\nInventory Full!"; }
+        if (pc.currentItems.Count == pc.maxItems) { newText += "\nInventory Full!"; }
         currentWeaponsText.text = newText;
     }
     public void BuySellWeapon(EWeapons weapon)
@@ -114,3 +114,4 @@ public class BuyMenu : MonoBehaviour
         RefreshCurrentWeaponsText();
     }
 }
+*/

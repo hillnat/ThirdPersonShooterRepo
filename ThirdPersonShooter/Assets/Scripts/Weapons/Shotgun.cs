@@ -85,4 +85,8 @@ public class Shotgun : Weapon
             StartReloading();
         }
     }
+    private void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
 }

@@ -208,7 +208,7 @@ public abstract class Weapon : MonoBehaviour
     }
     public void HandleRecoil()
     {
-        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.deltaTime * recoilFadeMultiplier);
+        currentRecoil = Vector2.Lerp(currentRecoil, Vector2.zero, Time.fixedDeltaTime * recoilFadeMultiplier);
         if ((currentRecoil.x > 0 && currentRecoil.x < 0.01f) || (currentRecoil.x < 0 && currentRecoil.x > -0.01f)) { currentRecoil.x = 0; }
         if ((currentRecoil.y > 0 && currentRecoil.y < 0.01f) || (currentRecoil.y < 0 && currentRecoil.y > -0.01f)) { currentRecoil.y = 0; }
     }
@@ -231,13 +231,15 @@ public abstract class Weapon : MonoBehaviour
         hitLayerMask = LayerMask.GetMask(masks);
     }
     public void Update()
-    {
-        HandleRecoil();
-        
+    {     
         //If we were reloading last frame but arent anymore, the reload has finished
         if (wasReloading && !GetIsReloading()) {
             CompleteReload();
         }
+    }
+    public void FixedUpdate()
+    {
+        HandleRecoil();
     }
     public void LateUpdate()
     {

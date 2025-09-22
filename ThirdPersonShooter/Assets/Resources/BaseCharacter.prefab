@@ -431,7 +431,7 @@ GameObject:
   - component: {fileID: 6744255154447774039}
   m_Layer: 0
   m_Name: cameraParent
-  m_TagString: Untagged
+  m_TagString: CameraParent
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -596,7 +596,7 @@ GameObject:
   - component: {fileID: 8826663285305901752}
   m_Layer: 0
   m_Name: muzzlePoint
-  m_TagString: Untagged
+  m_TagString: MuzzlePoint
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -863,7 +863,7 @@ GameObject:
   - component: {fileID: 3741602734041896601}
   m_Layer: 3
   m_Name: HeadPoint
-  m_TagString: Untagged
+  m_TagString: HeadPoint
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1056,7 +1056,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1453256501374299694
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1150,12 +1150,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8598455125705054177}
   - component: {fileID: 1297867852649965476}
-  - component: {fileID: 8170193892177970548}
   - component: {fileID: 3768814949408088208}
   - component: {fileID: 5517399718665162801}
   - component: {fileID: 8786102147868184235}
   m_Layer: 3
-  m_Name: Player
+  m_Name: BaseCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1179,7 +1178,6 @@ Transform:
   - {fileID: 8383067242914778738}
   - {fileID: 1453256501374299694}
   - {fileID: 8826663285305901752}
-  - {fileID: 2465547069594567077}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1297867852649965476
@@ -1205,58 +1203,6 @@ CapsuleCollider:
   m_Height: 1.4176702
   m_Direction: 1
   m_Center: {x: 0, y: -0.29116488, z: 0}
---- !u!114 &8170193892177970548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4412522881496607905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9048b8ba6904d14899bb15e438d6968, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraOffset: {x: 0.45, y: 0.5, z: -0.86}
-  cameraParent: {fileID: 6744255154447774039}
-  baseFov: 90
-  isAiming: 0
-  mouseSensitivty: 25
-  jumps: 2
-  allWeapons:
-  - {fileID: 3791000434008228422}
-  - {fileID: 3390020193129792834}
-  - {fileID: 69584051340854803}
-  - {fileID: 3408156391469039132}
-  - {fileID: 5440375182513965255}
-  - {fileID: 3584422617952893446}
-  - {fileID: 585137006726059569}
-  heldItem: 0
-  heldItemEnum: 2147483647
-  currentWeapons: []
-  maxWeapons: 2
-  ammoText: {fileID: 7197509368289362701}
-  reloadIndicator: {fileID: 6622792267238497527}
-  healthText: {fileID: 785035224550910475}
-  kdaText: {fileID: 1836203702789870301}
-  speedText: {fileID: 3037849700961706371}
-  jumpAudio: {fileID: 8300000, guid: a061fc05aacc6f742a52b8048e9797a9, type: 3}
-  jump2Audio: {fileID: 8300000, guid: 70501ecc872297942ad068feec9f4a52, type: 3}
-  painSounds: {fileID: 8300000, guid: 51e6503b6d539ad47951a08fc3ceb62e, type: 3}
-  footstepSoundsPath: Player/Footsteps/
-  footsteps: []
-  myView: {fileID: 0}
-  destroyIfNotLocal:
-  - {fileID: 8569769652085758196}
-  - {fileID: 4132987677875201163}
-  - {fileID: 8322202533556420103}
-  health: 100
-  kills: 0
-  deaths: 0
-  lastDeathTime: 0
-  headPoint: {fileID: 7667251670492473187}
-  ownedProjectiles: []
-  muzzlePoint: {fileID: 8826663285305901752}
 --- !u!54 &3768814949408088208
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1303,7 +1249,6 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
-  - {fileID: 8170193892177970548}
   - {fileID: 8786102147868184235}
   - {fileID: 5315018436831859455}
   sceneViewId: 0
@@ -2603,7 +2548,7 @@ GameObject:
   - component: {fileID: 7197509368289362701}
   m_Layer: 5
   m_Name: AmmoText
-  m_TagString: Untagged
+  m_TagString: PlayerHud_AmmoText
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2737,7 +2682,7 @@ GameObject:
   - component: {fileID: 785035224550910475}
   m_Layer: 5
   m_Name: HealthText
-  m_TagString: Untagged
+  m_TagString: PlayerHud_HealthText
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3616,60 +3561,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &8322202533556420103
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2465547069594567077}
-  - component: {fileID: 4240231592562290654}
-  m_Layer: 0
-  m_Name: BuyMenu
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2465547069594567077
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8322202533556420103}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8598455125705054177}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4240231592562290654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8322202533556420103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c8b6fc72534cf94da1b3ac10d8cfc97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  buyMenuCanvas: {fileID: 8708430401957546467}
-  isMenuOpen: 0
-  currentWeaponsText: {fileID: 8624551559746633165}
-  BuyM4A1: {fileID: 6594684505982109751}
-  BuyM1911: {fileID: 156927511890991403}
-  BuyShotgun: {fileID: 7656572300328122545}
-  BuyTec9: {fileID: 4655475023698630006}
-  BuySniper: {fileID: 7333499974882528463}
-  BuyRingblade: {fileID: 8879694401235154895}
-  BuyRecallDagger: {fileID: 824295216388624447}
 --- !u!1 &8402158055195824822
 GameObject:
   m_ObjectHideFlags: 0
@@ -3847,7 +3738,7 @@ GameObject:
   - component: {fileID: 7948298441069758129}
   m_Layer: 5
   m_Name: MainCanvas
-  m_TagString: Untagged
+  m_TagString: PlayerHudUi
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4070,7 +3961,7 @@ GameObject:
   - component: {fileID: 6622792267238497527}
   m_Layer: 5
   m_Name: ReloadIndicator
-  m_TagString: Untagged
+  m_TagString: PlayerHud_ReloadIndicator
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5900,20 +5791,24 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
+      propertyPath: m_TagString
+      value: ItemMesh
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5440375182513965255}
+      addedObject: {fileID: 6756719903453364047}
   m_SourcePrefab: {fileID: 100100000, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
 --- !u!1 &3973773404871564019 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
   m_PrefabInstance: {fileID: 4315789892091029410}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5440375182513965255
+--- !u!114 &6756719903453364047
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5922,13 +5817,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3973773404871564019}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28b201e447159494686636fec0b319d4, type: 3}
+  m_Script: {fileID: 11500000, guid: 47c76d0678f3c07448534ac44da5d36b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentRecoil: {x: 0, y: 0}
-  ammo: 0
-  reloadStartTime: -3.4028235e+38
-  pingPongRecoil: 0
+  representative: 4
 --- !u!4 &4354555840002506825 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 226ba5e76879e6c438aab12f2a9cc2ec, type: 3}
@@ -6092,13 +5984,17 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
+      propertyPath: m_TagString
+      value: ItemMesh
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3390020193129792834}
+      addedObject: {fileID: 7333393623732972923}
   m_SourcePrefab: {fileID: 100100000, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
 --- !u!4 &8144802192963503405 stripped
 Transform:
@@ -6110,7 +6006,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cbbd05347e5af134daff5823b38c73c8, type: 3}
   m_PrefabInstance: {fileID: 8539562719413854918}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3390020193129792834
+--- !u!114 &7333393623732972923
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6119,10 +6015,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8810156727796883351}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0b407f005be6cd4fb13e822aa33565b, type: 3}
+  m_Script: {fileID: 11500000, guid: 47c76d0678f3c07448534ac44da5d36b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentRecoil: {x: 0, y: 0}
-  ammo: 0
-  reloadStartTime: -3.4028235e+38
-  pingPongRecoil: 0
+  representative: 1
