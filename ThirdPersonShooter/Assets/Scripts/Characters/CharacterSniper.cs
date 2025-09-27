@@ -14,9 +14,9 @@ public class CharacterSniper : PlayerController
 
     private void Awake()
     {
-        List<Weapon> weapons = new List<Weapon>();
-        weapons.Add(gameObject.AddComponent<Sniper>());
-        weapons.Add(gameObject.AddComponent<M1911>());
+        List<WeaponBase> weapons = new List<WeaponBase>();
+        weapons.Add(gameObject.AddComponent<WeaponDarkMatterSpellbook>());
+        weapons.Add(gameObject.AddComponent<WeaponPhotonSpellbook>());
         allItems = weapons.ToArray();
         base.Awake();
     }

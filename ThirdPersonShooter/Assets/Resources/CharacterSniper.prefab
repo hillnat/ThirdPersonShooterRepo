@@ -104,6 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef8222fadd5d05147889a8d2b2899622, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 0}
   myView: {fileID: 0}
   ownedProjectiles: []
   allItems: []

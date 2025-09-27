@@ -1,32 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[RequireComponent(typeof(AudioSource))]
+[RequireComponent(typeof(AudioSource), typeof(FollowPhotonView))]
 public class AudioEmitter : MonoBehaviour
 {
     public AudioSource aS;
-    public Transform followObject;
-    // Start is called before the first frame update
+    public FollowPhotonView followPhotonView;
     void Start()
     {
         aS = GetComponent<AudioSource>();
         if (aS == null) { Destroy(this.gameObject); }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Awake()
     {
-        
-    }
-    private void FixedUpdate()
-    {
-        if (followObject!=null)
-        {
-            transform.position = followObject.position;
-        }
+        followPhotonView = GetComponent<FollowPhotonView>();
     }
     private void LateUpdate()
     {
-        if (!aS.isPlaying) { followObject = null; transform.position = Vector3.zero; }
+        if (!aS.isPlaying) { followPhotonView.followObject = null; transform.position = Vector3.zero; }
     }
 }

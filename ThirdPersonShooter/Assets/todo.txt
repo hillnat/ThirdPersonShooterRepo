@@ -1,12 +1,72 @@
-Scoreboard
-Kill notifs
-single shell reload
-damage numbers
-crosshairs
-camera looks at killer
+Classes
+	Sniper - 
+		Weapons : Sniper rifle, P2011
+	Attack Mage -
+		Weapons : Photon Spellbook, Dark matter spellbook
 
-Long term:
-new maps
-classes?
-throwables?
-jump count UI?
+
+------------------------------------------------------Weapons-----------------------------------------------------
+	Sniper Rifle - 
+		Max ammo : 4
+		Reload time : 2.5
+		Damage : 33
+		Headshot mult : 4
+		Spread : 3
+		Aiming Spread : 0
+		Aiming movespeed mult : 0.5
+		Range : infinite
+------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+	P2011 (M1911, 2011)  - 
+		Max ammo : 7
+		Reload time : 1.3
+		Damage : 24
+		Headshot mult : 2
+		Spread : 2
+		Aiming Spread : 0.5
+		Aiming movespeed mult : 0.8
+		Range : 100	
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	Photon Spellbook -
+		Photon Split (primary):
+			Max ammo : 5
+			Damage : 15
+			Headshot mult : 2
+			Range : 25
+			Related Status Effects :
+				Detonates Photon Decay
+------------------------------------------------------------------------------------------------------------------------------------------------------------------				
+		Photon Bind (secondary):
+			Max ammo : 2
+			Damage : 5
+			Headshot mult : 1
+			Related Status Effects:
+				Photon Decay
+					Apply on hit
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	Dark Matter Spellbook
+		Graviton Snare (Primary)
+			Max : 1
+			Damage : 0
+			On hit : Refreshes Horizon Shift
+			Related Status Effects :
+				Graviton Grasp
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		Horizon Shift (Secondary)
+			Max : 1
+			Cooldown : 5s
+			Damage : 0
+			Effect : Dash forward 5 meters
+			Related Status Effects:
+				Photon Decay
+					Apply on hit
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------Status Effects -----------------------------------------------------
+	Photon Decay
+		Duration : 2.5
+		Detonation damage multiplier 3
+------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+	Graviton Grasp 
+		Duration : 1.5
+		Effects : Root
+------------------------------------------------------------------------------------------------------------------------------------------------------------------

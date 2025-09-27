@@ -49,6 +49,9 @@ MonoBehaviour:
   - RPC_SetLastHitBy
   - SyncUsername
   - AddKillfeedElement
+  - AddStatusEffect
+  - RPC_AddStatusEffect
+  - RPC_RemoveStatusEffect
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

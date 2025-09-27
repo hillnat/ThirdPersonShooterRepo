@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ItemMesh : MonoBehaviour
 {
-    public EWeapons representative;
+    public int indexInAnimator;
     private void Awake()
     {
         gameObject.tag = "ItemMesh";

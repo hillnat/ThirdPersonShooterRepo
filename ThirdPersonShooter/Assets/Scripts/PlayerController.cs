@@ -1,28 +1,33 @@
 using Photon.Pun;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
-
+using static StatusEffectBase;
+public enum ETeams { None, Red, Blue, Any}
 public abstract class PlayerController : MonoBehaviour, IPunObservable
 {
     //[Header("Components")]
-    private Rigidbody rb;
+    public Rigidbody rb;
     private Animator anim;
     private CapsuleCollider col;
     [HideInInspector]public PhotonView myView;
     private Camera myCamera;
-    [HideInInspector]public List<Projectile> ownedProjectiles;
+    [HideInInspector]public List<ProjectileBase> ownedProjectiles;
     private Transform muzzlePoint;
     private Transform headPoint;
     private Transform cameraParent;
     private Transform playerHudUi;
-    public Weapon[] allItems;
+    public WeaponBase[] allItems;
     public ItemMesh[] allItemMeshes;
+    private ETeams myTeam = ETeams.Any;
     private int heldItem = 0;
 
     private Vector2 mouseLookXY = Vector2.zero;
 
+    public List<StatusEffectBase> currentStatusEffects = new List<StatusEffectBase>();
 
     public abstract float moveSpeed {get;}
     public abstract float jumpForce { get;}
@@ -69,15 +74,17 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
 
     //[Header("Inventory")]
 
-    private TMP_Text ammoText;
+    private TMP_Text primaryAmmoText;
+    private TMP_Text secondaryAmmoText;
     private Image reloadIndicator;
     private TMP_Text healthText;
 
+    private LayerMask cameraCollisionLayerMask = new LayerMask();
 
 
-    private string painSoundsPath => $"Audio/{characterNameInFile}/Pain";
-    private string jumpSoundsPath => $"Audio/{characterNameInFile}/Jump";
-    private string footstepSoundsPath => $"Audio/{characterNameInFile}/Footsteps";
+    private string painSoundsPath => $"Audio/Characters/{characterNameInFile}/Pain";
+    private string jumpSoundsPath => $"Audio/Characters/{characterNameInFile}/Jump";
+    private string footstepSoundsPath => $"Audio/Characters/Player/Footsteps";
     private float lastPainSoundTime = 0f;
     private AudioClip[] footstepSounds;
     private AudioClip[] jumpSounds;
@@ -92,8 +99,35 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     //[Header("Collider")]
     private float baseColliderHeight = 0f;
     private float lastChangeWeaponTime = float.MinValue;
+    private float moveSpeedModifierFromStatusEffects = 1f;
     //[Header("Shooting")]
-    
+    private Transform GetChildWithTag(Transform t, string tag)
+    {
+        if (t.gameObject.tag == tag) { return t; }
+        else
+        {
+            for (int i = 0; i < t.childCount; i++)
+            {
+                Transform result = GetChildWithTag(t.GetChild(i), tag);
+                if (result != null)//Only teminate from base branch
+                {
+                    return result;
+                }
+            }
+        }
+        return null;//Base branch termination
+    }
+    private Transform[] GetAllChildrenWithTag(Transform t, string tag)
+    {
+        List<Transform> found = new List<Transform>();
+        if (t.gameObject.tag == tag) { found.Add(t); }
+        for (int i = 0; i < t.childCount; i++)
+        {
+            Transform[] result = GetAllChildrenWithTag(t.GetChild(i), tag);
+            found.AddRange(result);
+        }
+        return found.ToArray();//Base branch termination
+    }
 
     #region Username
     public string username
@@ -117,7 +151,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     public bool GetIsDead() { return health <= 0; }
     #endregion
     #region Weapon
-    public Weapon? GetWeapon()
+    public WeaponBase? GetWeapon()
     {
         if(heldItem>=allItems.Length){return null;}
         return allItems[heldItem];
@@ -150,7 +184,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     private void ChangeWeapon(int newHeldItem)
     {
         lastChangeWeaponTime = GameManager.instance.time;
-        Weapon currentWeapon = GetWeapon();
+        WeaponBase currentWeapon = GetWeapon();
         if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
 
         heldItem = Mathf.Clamp(newHeldItem, 0, allItems.Length - 1);
@@ -159,14 +193,13 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         
         RefreshWeaponMeshes();
     }
-    public EWeapons GetHeldItemIndex() { Weapon weapon = GetWeapon(); if (weapon != null) { return weapon.weaponType; } else { return (EWeapons)int.MaxValue; } }
     public void RefreshWeaponMeshes()
     {        
         ToggleAllWeaponMeshes(false);
         if (GetWeapon() != null) {
             for (int i = 0; i < allItemMeshes.Length; i++)
             {
-                if (GetWeapon().weaponType == allItemMeshes[i].representative) { allItemMeshes[i].gameObject.SetActive(true); }
+                if (GetWeapon().indexInAnimator == allItemMeshes[i].indexInAnimator) { allItemMeshes[i].gameObject.SetActive(true); }
             }
         }      
     }
@@ -200,34 +233,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
             health = (float)stream.ReceiveNext();
         }
     }
-    #endregion
-    private Transform GetChildWithTag(Transform t,string tag) {
-        if (t.gameObject.tag == tag) { return t; }
-        else
-        {
-            for (int i = 0; i < t.childCount; i++)
-            {
-                Transform result = GetChildWithTag(t.GetChild(i), tag);
-                if (result != null)//Only teminate from base branch
-                {
-                    return result;
-                }
-            }
-        }
-        return null;//Base branch termination
-    }
-    private Transform[] GetAllChildrenWithTag(Transform t, string tag)
-    {
-        List<Transform> found = new List<Transform>();
-        if (t.gameObject.tag == tag) { found.Add(t); }
-        for (int i = 0; i < t.childCount; i++)
-        {
-            Transform[] result = GetAllChildrenWithTag(t.GetChild(i), tag);
-            found.AddRange(result);
-        }
-        return found.ToArray();//Base branch termination
-    }
-    
+    #endregion   
     #region Unity Callbacks
     public void Awake()
     {
@@ -241,7 +247,8 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         cameraParent = GetChildWithTag(transform, "CameraParent");
         headPoint = GetChildWithTag(transform, "HeadPoint");
         playerHudUi = GetChildWithTag(transform, "PlayerHudUi");
-        ammoText = GetChildWithTag(transform, "PlayerHud_AmmoText").GetComponent<TMP_Text>();
+        primaryAmmoText = GetChildWithTag(transform, "PlayerHud_PrimaryAmmoText").GetComponent<TMP_Text>();
+        secondaryAmmoText = GetChildWithTag(transform, "PlayerHud_SecondaryAmmoText").GetComponent<TMP_Text>();
         healthText = GetChildWithTag(transform, "PlayerHud_HealthText").GetComponent<TMP_Text>();
         reloadIndicator = GetChildWithTag(transform, "PlayerHud_ReloadIndicator").GetComponent<Image>();
         baseColliderHeight = col.height;
@@ -265,7 +272,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         else
         {
             Destroy(rb);
-            Destroy(playerHudUi);
+            Destroy(playerHudUi.gameObject);
         }
         
     }
@@ -280,7 +287,10 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
             mouseSensitivty = SettingsManager.instance.settingsFile.sensitivity;
             GameManager.instance.view.RPC(nameof(GameManager.RPC_RefreshPlayerList), RpcTarget.All);//Tell GM to update player list once we have spawned
             
-            username = SettingsManager.instance.settingsFile.username;            
+            username = SettingsManager.instance.settingsFile.username;
+
+            string[] masks = new string[1] { "Default" };
+            cameraCollisionLayerMask = LayerMask.GetMask(masks);
         }
         RefreshWeaponMeshes();
     }
@@ -292,7 +302,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
             HandleUI();
             HandleCamera();
             HandleAiming();
-            
+            HandleStatusEffects();
             if (!GetIsDead())
             {
                 if (!SettingsManager.instance.settingsOpen)
@@ -330,8 +340,9 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     {
         if (GetWeapon() != null)
         {
-            Weapon weapon = GetWeapon();
-            ammoText.text = $"{weapon.ammo}";
+            WeaponBase weapon = GetWeapon();
+            primaryAmmoText.text = $"{weapon.primaryAmmo}";
+            secondaryAmmoText.text = $"{weapon.secondaryAmmo}";
 
             if (weapon.GetIsReloading())
             {
@@ -344,7 +355,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
             }
             if (weapon.currentRecoil != Vector2.zero) { AddMouseLook(GetWeapon().currentRecoil); }
         }
-        else { ammoText.text = ""; }
+        else { primaryAmmoText.text = ""; secondaryAmmoText.text = ""; }
 
 
         healthText.text = Mathf.CeilToInt(health) + "";
@@ -362,11 +373,10 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         if (InputManager.instance.wasdInputs != Vector2.zero)
         {
             float aimMoveSpeedMod = (isAiming ? GetWeapon().aimingMoveSpeedModifier : 1f);
-            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y * moveSpeed * /*(GetIsWallRunning() ? 1.5f : 1f) **/ aimMoveSpeedMod;
-            Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x * moveSpeed * /*(GetIsWallRunning() ? 0f : 1f) **/ aimMoveSpeedMod;
+            Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y;
+            Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x;
             Vector3 movementVector = Vector3.ProjectOnPlane((forwardVector + rightVector), currentGroundNormal);
-            rb.AddForce(movementVector*Time.fixedDeltaTime);
-            //Directional inputs are already normalized
+            rb.AddForce(movementVector*Time.fixedDeltaTime* moveSpeedModifierFromStatusEffects* aimMoveSpeedMod * moveSpeed);
         }
     }
     private void HandleGroundAndWallChecks()
@@ -403,26 +413,21 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         }
         if(GetWeapon() && !GetIsChangingWeapon())
         {
-            Weapon weapon = GetWeapon();
-            if (weapon.GetCanFire())
+            WeaponBase weapon = GetWeapon();
+            if (((!GetWeapon().isFullAuto && InputManager.instance.mouse1) || (GetWeapon().isFullAuto && InputManager.instance.mouse1Hold)) && GetWeapon().GetCanPrimaryFire())
             {
-                if (weapon.isFullAuto)
+                if (weapon.DoPrimaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
                 {
-                    if (InputManager.instance.mouse1Hold)
-                    {
-                        anim.SetTrigger("Fire");
-                        weapon.Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
-                    }
+                    anim.SetTrigger("Fire");
                 }
-                else
+            }
+            if ((!GetWeapon().isFullAuto && InputManager.instance.mouse2) || (GetWeapon().isFullAuto && InputManager.instance.mouse2Hold) && GetWeapon().GetCanSecondaryFire())
+            {
+                if (weapon.DoSecondaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
                 {
-                    if (InputManager.instance.mouse1)
-                    {
-                        anim.SetTrigger("Fire");
-                        weapon.Fire(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position);
-                    }
+                    anim.SetTrigger("Fire");
                 }
-            }     
+            }
             if (InputManager.instance.reload && weapon.GetCanReload())
             {
                 weapon.StartReloading();
@@ -451,7 +456,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         anim.SetBool("Dead", GetIsDead());
         if (GetWeapon() != null) { 
             anim.SetBool("Reloading", GetWeapon().GetIsReloading());
-            anim.SetInteger("HeldItem", (int)GetWeapon().weaponType+1);
+            anim.SetInteger("HeldItem", (int)GetWeapon().indexInAnimator);
         }
         else { 
             anim.SetBool("Reloading", false);
@@ -469,7 +474,7 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         {
             AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
         }  
-        if (Physics.Raycast(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset), out RaycastHit camHit, cameraOffset.magnitude))//Wall check for camera
+        if (Physics.Raycast(cameraParent.transform.position, cameraParent.transform.TransformVector(cameraOffset), out RaycastHit camHit, cameraOffset.magnitude, cameraCollisionLayerMask))//Wall check for camera
         {
             myCamera.transform.position = camHit.point;
         }
@@ -491,9 +496,9 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     
     private void HandleAiming()
     {
-        Weapon weapon = GetWeapon();
+        /*Weapon weapon = GetWeapon();
         isAiming = weapon!=null&&InputManager.instance.mouse2Hold;
-        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon.zoomFov : baseFov, Time.deltaTime * 30f);
+        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon.zoomFov : baseFov, Time.deltaTime * 30f);*/
     }
     #endregion
     #region RPCs
@@ -537,10 +542,10 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
     }
     #endregion
     #region Projectiles
-    public void SpawnProjectile(string preafabPath, Vector3 position, Quaternion rotation, Vector3 targetPosition)
+    public void SpawnProjectile(string prefabPath, Vector3 position, Quaternion rotation, Vector3 targetPosition)
     {
-        GameObject go = PhotonNetwork.Instantiate(preafabPath, position, rotation);
-        Projectile newProjectile = go.GetComponent<Projectile>();
+        GameObject go = PhotonNetwork.Instantiate(prefabPath, position, rotation);
+        ProjectileBase newProjectile = go.GetComponent<ProjectileBase>();
         newProjectile.owningPc = this;
         newProjectile.targetPosition = targetPosition;
         ownedProjectiles.Add(newProjectile);
@@ -558,15 +563,80 @@ public abstract class PlayerController : MonoBehaviour, IPunObservable
         health = 0;
         lastDeathTime = GameManager.instance.time;
         ResetAllWeapons();
+        ClearStatusEffects();
         col.height = 0.1f;
     }
     public void Respawn()
     {
+        ClearStatusEffects();
         ResetAllWeapons();
         health = 100;
         col.height = baseColliderHeight;
-        transform.position = GameManager.instance.GetRandomSpawn();
+        transform.position = GameManager.instance.GetRandomSpawn(myTeam);
         lastHitByViewId = int.MinValue;
+    }
+    #endregion
+    #region Status Effects
+    [PunRPC]
+    public void RPC_AddStatusEffect(StatusEffectBase.EStatusEffects eStatusEffect, int uniqueID)
+    {
+        StatusEffectBase newEffect = StatusEffectBase.GetStatusEffectTypeFromEnum(eStatusEffect);
+        newEffect.displayParticlesUniqueID = uniqueID;
+        newEffect.startTime = GameManager.instance.time;
+        currentStatusEffects.Add(newEffect);
+        if (myView.IsMine)
+        {
+            ParticleManager.instance.PlayParticle(true, newEffect.GetRandomDisplayParticle(), transform.position, Quaternion.identity, myView.ViewID, uniqueID);
+        }
+    }
+    public void HandleStatusEffects()
+    {
+        moveSpeedModifierFromStatusEffects = 1f;
+        for (int i = 0; i < currentStatusEffects.Count; i++)
+        {
+            float time = GameManager.instance.time;
+            StatusEffectBase effect = currentStatusEffects[i];
+            if (time > effect.lifeTime + effect.startTime)
+            {
+                currentStatusEffects.RemoveAt(i);
+                i--;
+            }
+
+            if (effect.GetType() == typeof(StatusEffectGravitonGrasp))
+            {
+                moveSpeedModifierFromStatusEffects = 0.1f;
+            }
+        }
+    }
+    private void ClearStatusEffects()
+    {
+        for (int i = 0; i < currentStatusEffects.Count; i++)
+        {
+            if (currentStatusEffects[i].displayParticlesUniqueID != int.MinValue)
+            {
+                ParticleManager.instance.DestroyParticleWithUniqueID(currentStatusEffects[i].displayParticlesUniqueID);
+            }
+        }
+        currentStatusEffects.Clear();
+    }
+    [PunRPC]
+    public void RPC_RemoveStatusEffect(StatusEffectBase.EStatusEffects eStatusEffect)
+    {
+        StatusEffectBase toRemove = StatusEffectBase.GetStatusEffectTypeFromEnum(eStatusEffect);
+
+        for (int i = 0; i < currentStatusEffects.Count; i++)
+        {
+            StatusEffectBase currentEffect = currentStatusEffects[i];
+            if (currentEffect.GetType() == toRemove.GetType())
+            {
+                if (currentStatusEffects[i].displayParticlesUniqueID != int.MinValue)
+                {
+                    ParticleManager.instance.DestroyParticleWithUniqueID(currentStatusEffects[i].displayParticlesUniqueID);
+                }
+                currentStatusEffects.RemoveAt(i);
+                i--;
+            }
+        }
     }
     #endregion
 }

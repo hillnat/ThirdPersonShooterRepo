@@ -101,7 +101,7 @@ Material:
     - _ClearCoatSmoothness: 0
     - _ColorMode: 4
     - _Cull: 2
-    - _Cutoff: 0.667
+    - _Cutoff: 0.705
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DistortionBlend: 0.5

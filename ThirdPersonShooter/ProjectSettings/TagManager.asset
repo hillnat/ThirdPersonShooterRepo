@@ -9,10 +9,13 @@ TagManager:
   - MuzzlePoint
   - HeadPoint
   - PlayerHudUi
-  - PlayerHud_AmmoText
   - PlayerHud_HealthText
   - PlayerHud_ReloadIndicator
   - ItemMesh
+  - RedSpawn
+  - BlueSpawn
+  - PlayerHud_PrimaryAmmoText
+  - PlayerHud_SecondaryAmmoText
   layers:
   - Default
   - TransparentFX

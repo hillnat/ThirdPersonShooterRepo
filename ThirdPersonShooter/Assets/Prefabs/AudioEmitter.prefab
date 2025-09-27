@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1351648626232715303}
   - component: {fileID: 8503121159553256785}
   - component: {fileID: 1952365491130507292}
+  - component: {fileID: 8979719909220867383}
   m_Layer: 0
   m_Name: AudioEmitter
   m_TagString: Untagged
@@ -160,4 +161,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   aS: {fileID: 8503121159553256785}
+  followPhotonView: {fileID: 0}
+--- !u!114 &8979719909220867383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5881869635969421572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bc87a08e2e86b94c91f7e0987761f39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   followObject: {fileID: 0}

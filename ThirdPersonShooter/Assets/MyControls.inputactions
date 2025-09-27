@@ -24,6 +24,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Mouse2",
+                    "type": "Button",
+                    "id": "00c29a3d-64f6-4547-9b85-e4219be940e0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Mouse2Hold",
                     "type": "PassThrough",
                     "id": "5f06836a-95c9-4b3d-bac9-3c3e3cfd827c",
@@ -252,6 +261,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Mouse1",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bf810011-d00c-4d5d-b056-3158ce9b2f99",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse2",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
