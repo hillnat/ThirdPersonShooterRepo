@@ -58,8 +58,8 @@ public class KillfeedManager : MonoBehaviour
     [PunRPC]
     public void AddKillfeedElement(int killerViewId, int victimViewId)
     {
-        PlayerController killerPc = PhotonView.Find(killerViewId).transform.GetComponent<PlayerController>();
-        PlayerController victimPc = PhotonView.Find(victimViewId).transform.GetComponent<PlayerController>();
+        PlayerControllerBase killerPc = PhotonView.Find(killerViewId).transform.GetComponent<PlayerControllerBase>();
+        PlayerControllerBase victimPc = PhotonView.Find(victimViewId).transform.GetComponent<PlayerControllerBase>();
         if (killerPc == null) { Debug.LogWarning($"KillfeedManager.AddKillfeedElement failed to find view ID for {killerViewId}");  return; }
         if (victimPc == null) { Debug.LogWarning($"KillfeedManager.AddKillfeedElement failed to find view ID for {victimViewId}");  return; }
 

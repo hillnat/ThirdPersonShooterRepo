@@ -54,11 +54,11 @@ public class ProjectileGravitonSnare : ProjectileBase
     {
         ProcessCollision(collision);
     }
-    public override bool ProcessHit(PlayerController hitPc, float damage, bool isHeadshot, Vector3 impactPoint)
+    public override bool ProcessHit(PlayerControllerBase hitPc, float damage, bool isHeadshot, Vector3 impactPoint)
     {
         bool enemyEffectedByPhotonBind = hitPc.currentStatusEffects.Any(item => item is StatusEffectPhotonDecay);
         float statusEffectMultiplier = (enemyEffectedByPhotonBind ? 2f : 1f);
-        if (enemyEffectedByPhotonBind) { hitPc.myView.RPC(nameof(PlayerController.RPC_RemoveStatusEffect), Photon.Pun.RpcTarget.All, StatusEffectBase.EStatusEffects.PhotonDecay); }
+        if (enemyEffectedByPhotonBind) { hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_RemoveStatusEffect), Photon.Pun.RpcTarget.All, StatusEffectBase.EStatusEffects.PhotonDecay); }
         return DealDamageToPc(hitPc, damage*statusEffectMultiplier, isHeadshot, impactPoint);
     }
 }

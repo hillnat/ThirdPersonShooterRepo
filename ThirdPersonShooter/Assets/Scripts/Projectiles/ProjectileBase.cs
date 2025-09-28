@@ -5,26 +5,27 @@ using UnityEngine;
 using static System.Net.WebRequestMethods;
 using static UnityEngine.GraphicsBuffer;
 
-public enum EProjectileMaxBounceBehavior { Destroy }
+public enum EProjectileMaxBounceBehavior { Destroy, None, Freeze }
 
 public abstract class ProjectileBase : MonoBehaviour, IPunObservable
 {
     [HideInInspector] public PhotonView view;
-    [HideInInspector]public PlayerController owningPc;
-    [HideInInspector] private Rigidbody rb;
+    [HideInInspector]public PlayerControllerBase owningPc;
+    [HideInInspector] protected Rigidbody rb;
     [HideInInspector] public Collider mainCollider;
-    public abstract EProjectileMaxBounceBehavior afterMaxBounceBehavior { get; }
+    public virtual EProjectileMaxBounceBehavior afterMaxBounceBehavior { get; } = EProjectileMaxBounceBehavior.Destroy;
     public virtual StatusEffectBase.EStatusEffects[] onHitStatusEffects { get; } = new StatusEffectBase.EStatusEffects[0];
     public virtual bool hasGravity { get; } = true;
-    public abstract float initialForce { get; }
-    public abstract float persistantForce { get; }
+    public virtual bool dealsDamage { get; } = true;
+    public virtual float initialForce { get; } = 0f;
+    public virtual float persistantForce { get; } = 0f;
     public virtual float lifetime { get; } = 10f;
     public virtual int maxBounces { get; } = 0;
     public abstract float baseDamage { get; }
     public virtual float headshotMultiplier { get; } = 1f;
     public virtual float impactAudioVolumeModifier { get; } = 1f;
     public virtual Vector2 impactAudioPitchRange { get; } = Vector2.one;
-
+    public virtual float colliderRadius { get; } = 0.5f;
     public abstract string projectileNameInFile { get; }
 
     private float spawnTime = 0f;
@@ -35,11 +36,11 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     [HideInInspector] public bool bouncesOffPlayers = true;
 
 
-    public List<PlayerController> hitPcs = new List<PlayerController>();
+    public List<PlayerControllerBase> hitPcs = new List<PlayerControllerBase>();
     [HideInInspector] public bool isFrozen = false;
     private Vector3 lastPosition;
     private Vector3 currentPosition;
-
+    private LayerMask hitLayerMask;
     private AudioClip[] impactAudioClips;
 
     private string impactSoundsPath => $"Audio/Projectiles/{projectileNameInFile}/Impact";
@@ -71,6 +72,11 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
         mainCollider = GetComponent<Collider>();
         spawnTime = GameManager.instance.time;
         hitPcs.Clear();
+        if (mainCollider.GetType() == typeof(SphereCollider))
+        {
+            ((SphereCollider)mainCollider).radius = colliderRadius;
+        }
+        hitLayerMask = LayerMask.GetMask(new string[2] { "Player" , "ProjectileBlocker"});
     }
     public void Start()
     {
@@ -98,27 +104,6 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             {
                 DestroyProjectile();
             }
-            /*
-            if (!wantsToFlyToPlayer && (maxBouncesReached && afterMaxBounceBehavior == AfterMaxBounceBehavior.ReturnToSender)) {
-                wantsToFlyToPlayer = true;
-            }
-            if (wantsToFlyToPlayer)
-            {
-                if (rb.velocity.magnitude > 0) { rb.velocity = Vector3.zero;rb.angularVelocity = Vector3.zero; }
-                transform.LookAt(owningPc.transform.position);
-                transform.position = Vector3.Lerp(transform.position, owningPc.transform.position, Time.deltaTime * flyToPlayerSpeed);
-  
-                if (Vector3.Distance(transform.position, owningPc.transform.position) < 0.5f)//Despawn if close enough to player when flying back
-                {
-                    DestroyProjectile();
-
-                    Weapon weapon = owningPc.GetWeapon();
-                    if (weapon != null && weapon.weaponType == EWeapons.RingBlade)
-                    {
-                        owningPc.GetWeapon().IncrementAmmo(1);
-                    }
-                }
-            }*/
         }
     }
     public void FixedUpdate()
@@ -129,11 +114,11 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             {
                 currentPosition = transform.position;
                 Vector3 dir = (currentPosition - lastPosition);
-                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.05f, dir.normalized, dir.magnitude);
+                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.05f, dir.normalized, dir.magnitude, hitLayerMask);
                 //Debug.DrawRay(lastPosition, dir, Color.yellow, 5f);
                 for (int i = 0; i < hits.Length; i++)
                 {
-                    PlayerController hitPc = hits[i].collider.transform.root.GetComponent<PlayerController>();
+                    PlayerControllerBase hitPc = hits[i].collider.transform.root.GetComponent<PlayerControllerBase>();
                     bool didHitPlayer = false;
                     bool isHeadshot = hits[i].collider.GetType() == typeof(SphereCollider);
 
@@ -156,8 +141,9 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
         
     }
     #endregion
-    public virtual bool ProcessHit(PlayerController hitPc, float damage, bool isHeadshot, Vector3 impactPoint)
+    public virtual bool ProcessHit(PlayerControllerBase hitPc, float damage, bool isHeadshot, Vector3 impactPoint)
     {
+        if (!dealsDamage) { return false; }
         return DealDamageToPc(hitPc, damage, isHeadshot, impactPoint);
     }
     private void DestroyProjectile()
@@ -186,7 +172,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     {
         mainCollider.enabled = state;
     }
-    protected bool DealDamageToPc(PlayerController targetPc, float damage, bool isHeadshot, Vector3 impactPos)
+    protected bool DealDamageToPc(PlayerControllerBase targetPc, float damage, bool isHeadshot, Vector3 impactPos)
     {
         bool didHitPlayer = false;
         
@@ -196,10 +182,10 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             ParticleManager.instance.PlayGoreParticles(true, transform.position, transform.rotation, int.MinValue);
             for (int i = 0; i < onHitStatusEffects.Length; i++)
             {
-                targetPc.myView.RPC(nameof(PlayerController.RPC_AddStatusEffect), RpcTarget.All, onHitStatusEffects[i], Random.Range(0,int.MaxValue));
+                targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_AddStatusEffect), RpcTarget.All, onHitStatusEffects[i], Random.Range(0,int.MaxValue));
             }
-            targetPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, owningPc.myView.ViewID);
-            targetPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -damage);
+            targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_SetLastHitBy), RpcTarget.All, owningPc.myView.ViewID);
+            targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_ChangeHealth), RpcTarget.All, -damage);
             if (isHeadshot) { AudioManager.instance.PlayHeadshotSound(true, impactPos, 1f, 1f, int.MinValue); }
             //ParticleManager.instance.SpawnDamageNumber(hitPc.transform.position, finalDamage);
             didHitPlayer = true;
@@ -209,7 +195,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     public void ProcessCollision(Collision collision)//Oncollisionenter
     {
         if (isFrozen) { return; }
-        if (collision.gameObject.transform.root.GetComponent<PlayerController>()) { return; }
+        if (collision.gameObject.transform.root.GetComponent<PlayerControllerBase>()) { return; }
         AudioManager.instance.PlaySound(true, GetRandomImpactAudio(), transform.position, impactAudioVolumeModifier, Random.Range(impactAudioPitchRange.x,impactAudioPitchRange.y), int.MinValue);
         ParticleManager.instance.PlayImpactParticles(true, transform.position, transform.rotation, int.MinValue);
         bounceCounter++;
@@ -224,6 +210,11 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             {
                 case EProjectileMaxBounceBehavior.Destroy:
                     DestroyProjectile();
+                    break;
+                case EProjectileMaxBounceBehavior.None:
+                    break;
+                case EProjectileMaxBounceBehavior.Freeze:
+                    FreezeProjectile(true);
                     break;
                 default: break;
             }

@@ -5,19 +5,17 @@ using UnityEngine;
 public class WeaponDarkMatterSpellbook : WeaponBase
 {
     public override string weaponNameInFile => "DarkMatterSpellbook";
-    public override int indexInAnimator => 8;
+    public override int indexInAnimator => 9;
 
     public override string weaponName => "Dark Matter Spellbook";
 
 
-    public override int primaryMaxAmmo => 1;
-    public override int secondaryMaxAmmo => 9999;
     public override int secondaryAmmoPerShot => 0;
-    public override float primaryFireDelay => 1f;
-    public override float secondaryFireDelay => 5f;
+    public override int primaryAmmoPerShot => 0;
+    public override float primaryFireDelay => 5f;
+    public override float secondaryFireDelay => 3f;
 
-
-    public override float reloadDelay => 2f;
+    public override bool reloadable => false;
     
     public override string primaryProjectilePrefabPath { get; } = "Projectiles/Projectile_GravitonSnare";
 
@@ -51,7 +49,7 @@ public class WeaponDarkMatterSpellbook : WeaponBase
         FireProjectile(true, cameraOrigin, cameraForward, muzzlePosition);
         return true;
     }
-    public override bool DoSecondaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
+    public override bool DoSecondaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)//Called HorizonShift
     {
         if (!base.DoSecondaryAction(cameraOrigin, cameraForward, muzzlePosition)) { return false; }
         myPc.rb.AddForce(Camera.main.transform.forward * 1500f);

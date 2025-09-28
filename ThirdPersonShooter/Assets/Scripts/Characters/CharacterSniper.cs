@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterSniper : PlayerController
+public class CharacterSniper : PlayerControllerBase
 {
-    public override float moveSpeed => 2000f;
+    public override float moveSpeed => 2300f;
 
-    public override float jumpForce => 1500f;
+    public override float jumpForce => 1300f;
 
     public override int maxItems => 2;
 
@@ -15,8 +15,8 @@ public class CharacterSniper : PlayerController
     private void Awake()
     {
         List<WeaponBase> weapons = new List<WeaponBase>();
-        weapons.Add(gameObject.AddComponent<WeaponDarkMatterSpellbook>());
-        weapons.Add(gameObject.AddComponent<WeaponPhotonSpellbook>());
+        weapons.Add(gameObject.AddComponent<WeaponSniper>());
+        weapons.Add(gameObject.AddComponent<WeaponShotgun>());
         allItems = weapons.ToArray();
         base.Awake();
     }

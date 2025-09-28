@@ -5,10 +5,10 @@ using UnityEngine;
 public abstract class WeaponBase : MonoBehaviour
 {
 
-    protected PlayerController myPc;
+    protected PlayerControllerBase myPc;
     public Vector2 currentRecoil = Vector2.zero;
-    private float lastPrimaryFireTime = 0;
-    private float lastSecondaryFireTime = 0;
+    public float lastPrimaryFireTime = 0;
+    public float lastSecondaryFireTime = 0;
     public int primaryAmmo=0;
     public int secondaryAmmo=0;
     public float reloadStartTime = float.MinValue;
@@ -40,10 +40,11 @@ public abstract class WeaponBase : MonoBehaviour
     public virtual float pitchSpread { get; } = 0f;
     public virtual float maxRange { get; } = 1000f;
     public virtual bool isFullAuto { get; } = false;
+    public virtual bool reloadable { get; } = true;
     public virtual string primaryProjectilePrefabPath { get; } = "";
     public virtual string secondaryProjectilePrefabPath { get; } = "";
     //Reload
-    public abstract float reloadDelay { get; }
+    public virtual float reloadDelay { get; } = 0f;
 
     
     private bool GetUsesSpread() { return yawSpread != 0 && pitchSpread != 0; }
@@ -59,11 +60,24 @@ public abstract class WeaponBase : MonoBehaviour
     public Vector2 GetRandomRecoil() { 
         return new Vector2(Random.Range(yRecoilMinMax.x, yRecoilMinMax.y), Random.Range(xRecoilMinMax.x, xRecoilMinMax.y)); 
     }
-    public bool GetIsReloading() { return (GameManager.instance.time < reloadStartTime + reloadDelay); }
-    public float GetReloadTimeLeft() { return GetIsReloading() ? ((int)(((reloadStartTime + reloadDelay) - GameManager.instance.time) * 10f) / 10f) : 0f; }
-    public bool GetCanReload() { return !GetIsReloading() && primaryAmmo != primaryMaxAmmo; }
-    public bool GetCanPrimaryFire() { return GameManager.instance.time > lastPrimaryFireTime + primaryFireDelay && primaryAmmo>0; }
-    public bool GetCanSecondaryFire() { return GameManager.instance.time > lastSecondaryFireTime + primaryFireDelay && secondaryAmmo>0; }
+    public bool GetIsReloading() { return reloadable && (GameManager.instance.time < reloadStartTime + reloadDelay); }
+    public float GetReloadTimeLeft() {
+        if (!reloadable || !GetIsReloading()){ return 0f; }
+        return ((int)(((reloadStartTime + reloadDelay) - GameManager.instance.time) * 10f) / 10f); 
+    }
+    public bool GetCanReload() { return reloadable && !GetIsReloading(); }
+    public bool GetCanPrimaryFire() { return GameManager.instance.time > lastPrimaryFireTime + primaryFireDelay && (primaryAmmo > 0 || primaryAmmoPerShot == 0); }
+    public bool GetCanSecondaryFire() { return GameManager.instance.time > lastSecondaryFireTime + secondaryFireDelay && (secondaryAmmo > 0 || secondaryAmmoPerShot == 0); }
+    public float GetPrimaryFireDelayElapsedAmount01()
+    {
+        if (GetCanPrimaryFire()) { return 0f; }
+        return Mathf.InverseLerp(0f, primaryFireDelay, GameManager.instance.time - lastPrimaryFireTime);
+    }
+    public float GetSecondaryFireDelayElapsedAmount01()
+    {
+        if (GetCanSecondaryFire()) { return 0f; }
+        return Mathf.InverseLerp(0f, secondaryFireDelay, GameManager.instance.time - lastSecondaryFireTime);
+    }
     private float GetValueFromYawSpread()
     {
         float val = yawSpread;
@@ -108,7 +122,35 @@ public abstract class WeaponBase : MonoBehaviour
         lastSecondaryFireTime = GameManager.instance.time;
         return true;
     }
-    public void FireHitscan(bool isPrimaryFire, Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
+    public void FireMelee(Vector3 cameraOrigin, Vector3 cameraForward, float radius)
+    {
+        if (GetIsReloading()) { CancelReload(); }
+        RaycastHit[] hits = Physics.SphereCastAll(cameraOrigin+cameraForward, radius, cameraForward, maxRange, hitLayerMask);//Cast main ray from camera
+        Debug.DrawRay(cameraOrigin + cameraForward, cameraForward * maxRange, Color.yellow,5);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit hit = hits[i];
+            if (hit.transform.root.gameObject.TryGetComponent<PlayerControllerBase>(out PlayerControllerBase hitPc) && hitPc != myPc && !hitPc.GetIsDead())//Hit player
+            {
+                float finalDamage = damage;
+                bool isHeadshot = hit.collider.GetType() == typeof(SphereCollider);
+                if (isHeadshot)
+                {
+                    finalDamage *= headshotModifier;
+                    AudioManager.instance.PlayHeadshotSound(true, hit.point, 1f, 1f, int.MinValue);
+                }
+                hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
+                hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
+
+                ParticleManager.instance.PlayGoreParticles(true, hit.point, Quaternion.Euler(hit.normal), int.MinValue);//Spawn blood
+            }
+            else
+            {
+                ParticleManager.instance.PlayImpactParticles(true, hit.point, Quaternion.Euler(hit.normal), int.MinValue);
+            }
+        }   
+    }
+    public void FireHitscan(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
     {
         if (GetIsReloading()) { CancelReload(); }
 
@@ -140,7 +182,7 @@ public abstract class WeaponBase : MonoBehaviour
             if (!muzzleRaySuccess) { return; }
 
 
-            if (hit2.transform.root.gameObject.TryGetComponent<PlayerController>(out PlayerController hitPc) && hitPc != myPc && !hitPc.GetIsDead())//Hit player
+            if (hit2.transform.root.gameObject.TryGetComponent<PlayerControllerBase>(out PlayerControllerBase hitPc) && hitPc != myPc && !hitPc.GetIsDead())//Hit player
             {
                 float finalDamage = Mathf.Lerp(damage, 0, hit2.distance / maxRange);
                 bool isHeadshot = hit2.collider.GetType() == typeof(SphereCollider);
@@ -149,8 +191,8 @@ public abstract class WeaponBase : MonoBehaviour
                     finalDamage *= headshotModifier;
                     AudioManager.instance.PlayHeadshotSound(true, hit2.point, 1f, 1f, int.MinValue);
                 }
-                hitPc.myView.RPC(nameof(PlayerController.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
-                hitPc.myView.RPC(nameof(PlayerController.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
+                hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_SetLastHitBy), RpcTarget.All, myPc.myView.ViewID);
+                hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_ChangeHealth), RpcTarget.All, -finalDamage);
 
                 ParticleManager.instance.PlayGoreParticles(true, hit2.point, Quaternion.Euler(hit2.normal), int.MinValue);//Spawn blood
             }
@@ -164,7 +206,7 @@ public abstract class WeaponBase : MonoBehaviour
     {
         if (GetIsReloading()) { CancelReload(); }
 
-        myPc.SpawnProjectile(isPrimaryFire ? primaryProjectilePrefabPath : secondaryProjectilePrefabPath, muzzlePosition, /*Quaternion.Euler(cameraForward)*/Quaternion.identity, muzzlePosition + (cameraForward * 5));
+        myPc.SpawnProjectile(isPrimaryFire ? primaryProjectilePrefabPath : secondaryProjectilePrefabPath, muzzlePosition, /*Quaternion.Euler(cameraForward)*/Quaternion.identity, cameraOrigin + (cameraForward * 100));
     }
     public void ChangePrimaryAmmo(int delta)
     {
@@ -176,7 +218,7 @@ public abstract class WeaponBase : MonoBehaviour
     }
     public void StartReloading()
     {
-        if (GetIsReloading()) { return; }
+        if (!reloadable || GetIsReloading()) { return; }
         wasReloading = true;
         reloadStartTime = GameManager.instance.time;
 
@@ -185,6 +227,7 @@ public abstract class WeaponBase : MonoBehaviour
     }
     public void CancelReload()
     {
+        if (!reloadable) { return; }
         wasReloading = false;
         reloadStartTime = float.MinValue;
     }
@@ -206,10 +249,11 @@ public abstract class WeaponBase : MonoBehaviour
         reloadSounds = Resources.LoadAll<AudioClip>(GetReloadSoundsPath());
         primaryFireSounds = Resources.LoadAll<AudioClip>(GetPrimaryFireSoundsPath());
         secondaryFireSounds = Resources.LoadAll<AudioClip>(GetSecondaryFireSoundsPath());
-        myPc = transform.root.gameObject.GetComponent<PlayerController>();
+        myPc = transform.root.gameObject.GetComponent<PlayerControllerBase>();
     }
     public virtual void CompleteReload()
     {
+        if (!reloadable) { return; }
         primaryAmmo = primaryMaxAmmo;
         secondaryAmmo = secondaryMaxAmmo;
         reloadStartTime = float.MinValue;

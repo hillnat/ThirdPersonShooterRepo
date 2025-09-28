@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-    public PlayerController localPlayer;
-    public PlayerController[] allPlayers;
+    public PlayerControllerBase localPlayer;
+    public PlayerControllerBase[] allPlayers;
     public PhotonView view;
     public float time = 0f;
     private void Awake()
@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
 
         PhotonNetwork.SendRate = 25;
         PhotonNetwork.SerializationRate = 50;
-        localPlayer = PhotonNetwork.Instantiate("CharacterSniper", GetRandomSpawn(ETeams.Any), Quaternion.identity).GetComponent<PlayerController>();
+        localPlayer = PhotonNetwork.Instantiate("CharacterFireWarrior", GetRandomSpawn(ETeams.Any), Quaternion.identity).GetComponent<PlayerControllerBase>();
         RPC_RefreshPlayerList();
     }
     public Vector3 GetRandomSpawn(ETeams team)
@@ -76,6 +76,6 @@ public class GameManager : MonoBehaviour
     [PunRPC]
     public void RPC_RefreshPlayerList()
     {
-        allPlayers = GameObject.FindObjectsOfType<PlayerController>();
+        allPlayers = GameObject.FindObjectsOfType<PlayerControllerBase>();
     }
 }

@@ -11,12 +11,13 @@ public class WeaponPhotonSpellbook : WeaponBase
 
     public override float zoomFov => 75f;
 
-    public override int primaryMaxAmmo => 7;
-    public override int secondaryMaxAmmo => 2;
+    public override int primaryAmmoPerShot => 0;
+    public override int secondaryAmmoPerShot => 0;
 
-    public override float primaryFireDelay => 0.3f;
-    public override float secondaryFireDelay => 1f;
-    public override float reloadDelay => 2f;
+    public override float primaryFireDelay => 1f;
+    public override float secondaryFireDelay => 3f;
+
+    public override bool reloadable => false;
     public override string primaryProjectilePrefabPath { get; } = "Projectiles/Projectile_PhotonSplit";
     public override string secondaryProjectilePrefabPath { get; } = "Projectiles/Projectile_PhotonBind";
 

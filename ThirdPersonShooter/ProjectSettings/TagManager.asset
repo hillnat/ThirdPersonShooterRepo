@@ -16,6 +16,8 @@ TagManager:
   - BlueSpawn
   - PlayerHud_PrimaryAmmoText
   - PlayerHud_SecondaryAmmoText
+  - PlayerHud_PrimaryFireIndicator
+  - PlayerHud_SecondaryFireIndicator
   layers:
   - Default
   - TransparentFX
@@ -27,7 +29,7 @@ TagManager:
   - ProjectileTrigger
   - Projectile
   - LocalPlayer
-  - 
+  - ProjectileBlocker
   - 
   - 
   - 

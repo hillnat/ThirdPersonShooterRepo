@@ -53,7 +53,7 @@ public class WeaponSniper : WeaponBase
     public override bool DoPrimaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
     {
         if (!base.DoPrimaryAction(cameraOrigin, cameraForward, muzzlePosition)) { return false; }
-        FireHitscan(true, cameraOrigin, cameraForward, muzzlePosition);
+        FireHitscan(cameraOrigin, cameraForward, muzzlePosition);
         return true;
     }
 }
