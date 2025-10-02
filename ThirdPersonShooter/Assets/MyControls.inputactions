@@ -168,7 +168,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "BuyMenu",
+                    "name": "UpgradeTree",
                     "type": "Button",
                     "id": "93e9df4d-7c5d-4e32-b466-9e5ee530a342",
                     "expectedControlType": "",
@@ -458,7 +458,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "BuyMenu",
+                    "action": "UpgradeTree",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

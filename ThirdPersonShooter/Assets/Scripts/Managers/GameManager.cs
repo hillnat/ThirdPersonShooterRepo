@@ -4,14 +4,30 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+public enum EGameState { WaitingToStartMatch, PreRound, RoundPlaying, RoundOver, GameOver}
 [RequireComponent(typeof(PhotonView))]
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IPunObservable
 {
+    public EGameState gamestate = EGameState.WaitingToStartMatch;
     public static GameManager instance;
     public PlayerControllerBase localPlayer;
     public PlayerControllerBase[] allPlayers;
     public PhotonView view;
-    public float time = 0f;
+    public float localTime = 0f;
+    public float gameStateTimer = 0f;
+    public int maxRoundTimeMinutes = 10;
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(gameStateTimer);
+        }
+        else
+        {
+            gameStateTimer = (float)stream.ReceiveNext();
+        }
+    }
     private void Awake()
     {
         if (instance == null)
@@ -26,9 +42,38 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
-        time = Time.time;
+        localTime = Time.time;
+        if (PhotonNetwork.IsMasterClient)
+        {
+            
+        }      
     }
+    private void FixedUpdate()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            gameStateTimer += Time.fixedDeltaTime;
 
+            switch (gamestate)
+            {
+                case EGameState.WaitingToStartMatch:
+                    break;
+                case EGameState.PreRound:
+                    if (gameStateTimer > 15) { gameStateTimer = 0f; gamestate = EGameState.RoundPlaying; }
+                    break;
+                case EGameState.RoundPlaying:
+                    if (gameStateTimer > (maxRoundTimeMinutes*60)) { 
+                        gameStateTimer = 0f; gamestate = EGameState.PreRound; 
+                    }
+                    break;
+                case EGameState.RoundOver:
+                    if (gameStateTimer > 15) { gameStateTimer = 0f; gamestate = EGameState.PreRound; }
+                    break;
+                case EGameState.GameOver:
+                    break;
+            }
+        }
+    }
     private void Start()
     {
         if (!PhotonNetwork.IsConnected)
@@ -78,4 +123,6 @@ public class GameManager : MonoBehaviour
     {
         allPlayers = GameObject.FindObjectsOfType<PlayerControllerBase>();
     }
+
+    
 }

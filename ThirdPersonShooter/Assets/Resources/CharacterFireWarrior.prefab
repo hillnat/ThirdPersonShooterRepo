@@ -777,7 +777,6 @@ MonoBehaviour:
   allItems: []
   allItemMeshes: []
   mouseSensitivty: 25
-  isAiming: 0
 --- !u!114 &5935140191067821788 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5315018436831859455, guid: 11eee09af27497f4486ef8e3ba16b659, type: 3}

@@ -58,7 +58,7 @@ public class ProjectilePhotonSplit : ProjectileBase
         bool enemyEffectedByPhotonDecay = hitPc.currentStatusEffects.Any(item => item is StatusEffectPhotonDecay);
         float statusEffectMultiplier = (enemyEffectedByPhotonDecay ? 2f : 1f);
         if (enemyEffectedByPhotonDecay) { 
-            hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_RemoveStatusEffect), Photon.Pun.RpcTarget.All, StatusEffectBase.EStatusEffects.PhotonDecay);
+            hitPc.myView.RPC(nameof(PlayerControllerBase.RPC_RemoveStatusEffect), Photon.Pun.RpcTarget.All, EStatusEffects.PhotonDecay);
             WeaponBase spellbook = owningPc.GetWeaponOfType(typeof(WeaponPhotonSpellbook));
             if (spellbook != null)
             {

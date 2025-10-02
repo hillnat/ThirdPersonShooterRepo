@@ -11,13 +11,13 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     public Rigidbody rb;
     private Animator anim;
     private CapsuleCollider col;
+    private PlayerHud myHud;
     [HideInInspector]public PhotonView myView;
     private Camera myCamera;
     [HideInInspector]public List<ProjectileBase> ownedProjectiles;
     private Transform muzzlePoint;
     private Transform headPoint;
     private Transform cameraParent;
-    private Transform playerHudUi;
     public WeaponBase[] allItems;
     public ItemMesh[] allItemMeshes;
     private ETeams myTeam = ETeams.Any;
@@ -52,7 +52,6 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     private const float groundedCheckOriginOffset = -0.99f;
 
 
-    [HideInInspector]public bool isAiming = false;
     private bool isGrounded = false;
 
     //[Header("Ground Checks")]
@@ -72,15 +71,10 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
 
     //[Header("Inventory")]
 
-    private TMP_Text primaryAmmoText;
-    private TMP_Text secondaryAmmoText;
-    private Image reloadIndicator;
-    private Image primaryFireIndicator;
-    private Image secondaryFireIndicator;
-    private TMP_Text healthText;
+    
 
     private LayerMask cameraCollisionLayerMask = new LayerMask();
-
+    public UpgradeTree myUpgradeTree = new UpgradeTree();
 
     private string painSoundsPath => $"Audio/Characters/{characterNameInFile}/Pain";
     private string jumpSoundsPath => $"Audio/Characters/{characterNameInFile}/Jump";
@@ -117,6 +111,18 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     }
     #endregion
     #region Getters
+    public int GetHeldItemNumber()
+    {
+        return heldItem;
+    }
+    public float GetHealth()
+    {
+        return health;
+    }
+    public bool GetIsPlayingFromGameState()
+    {
+        return GameManager.instance.gamestate == EGameState.RoundPlaying;
+    }
     public AudioClip GetRandomJumpAudio()
     {
         if(jumpSounds.Length == 0) {return null;}
@@ -133,7 +139,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         return painSounds[UnityEngine.Random.Range(0, painSounds.Length)];
     }
     public bool GetShouldPlayFootstep() { return (isGrounded) && ((Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z)) / 2) > 0.5f; }
-    public bool GetJumpDelayElapsed() { return GameManager.instance.time > lastJumpTime + jumpDelay; }
+    public bool GetJumpDelayElapsed() { return GameManager.instance.localTime > lastJumpTime + jumpDelay; }
     public bool GetCanJump() { return GetJumpDelayElapsed() && jumps > 0; }
     private Transform GetChildWithTag(Transform t, string tag)
     {
@@ -162,11 +168,11 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         }
         return found.ToArray();//Base branch termination
     }
-    private bool GetIsChangingWeapon() { return GameManager.instance.time < lastChangeWeaponTime + 0.2f; }
+    private bool GetIsChangingWeapon() { return GameManager.instance.localTime < lastChangeWeaponTime + 0.2f; }
     public bool GetIsDead() { return health <= 0; }
     #endregion
     #region Weapon
-    public WeaponBase? GetHeldWeapon()
+    public WeaponBase GetHeldWeapon()
     {
         if(heldItem>=allItems.Length){return null;}
         return allItems[heldItem];
@@ -210,7 +216,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     }*/
     private void ChangeWeapon(int newHeldItem)
     {
-        lastChangeWeaponTime = GameManager.instance.time;
+        lastChangeWeaponTime = GameManager.instance.localTime;
         WeaponBase currentWeapon = GetHeldWeapon();
         if (currentWeapon != null && currentWeapon.GetIsReloading()) { currentWeapon.CancelReload(); }
 
@@ -249,7 +255,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     #region Networking
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (isMine)
+        if (stream.IsWriting)
         {
             stream.SendNext(cameraParent.transform.eulerAngles);
             stream.SendNext(health);
@@ -268,22 +274,16 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         rb = GetComponent<Rigidbody>();
         myView = GetComponent<PhotonView>();
         col = GetComponent<CapsuleCollider>();
-
+        myHud = GetComponentInChildren<PlayerHud>();
 
         muzzlePoint = GetChildWithTag(transform, "MuzzlePoint");
         cameraParent = GetChildWithTag(transform, "CameraParent");
         headPoint = GetChildWithTag(transform, "HeadPoint");
-        playerHudUi = GetChildWithTag(transform, "PlayerHudUi");
-        primaryAmmoText = GetChildWithTag(transform, "PlayerHud_PrimaryAmmoText").GetComponent<TMP_Text>();
-        secondaryAmmoText = GetChildWithTag(transform, "PlayerHud_SecondaryAmmoText").GetComponent<TMP_Text>();
-        healthText = GetChildWithTag(transform, "PlayerHud_HealthText").GetComponent<TMP_Text>();
-        reloadIndicator = GetChildWithTag(transform, "PlayerHud_ReloadIndicator").GetComponent<Image>();
-        primaryFireIndicator = GetChildWithTag(transform, "PlayerHud_PrimaryFireIndicator").GetComponent<Image>();
-        secondaryFireIndicator = GetChildWithTag(transform, "PlayerHud_SecondaryFireIndicator").GetComponent<Image>();
         baseColliderHeight = col.height;
         isMine = myView.IsMine;
         if (isMine)
         {
+            myHud.myPc = this;
             myCamera = Camera.main;
             myCamera.transform.parent = cameraParent;
             myCamera.transform.localPosition = cameraOffset;
@@ -297,11 +297,12 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
             jumpSounds = Resources.LoadAll<AudioClip>(jumpSoundsPath);
             gameObject.layer = LayerMask.NameToLayer("LocalPlayer");
             headPoint.gameObject.layer = LayerMask.NameToLayer("LocalPlayer");
+            SetUpgradeTreeBranchNumOfWeapons();
         }
         else
         {
             Destroy(rb);
-            Destroy(playerHudUi.gameObject);
+            Destroy(myHud.gameObject);
         }
         
     }
@@ -328,13 +329,11 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     {
         if (isMine)
         {
-            HandleUI();
             HandleCamera();
-            HandleAiming();
             HandleStatusEffects();
             if (!GetIsDead())
             {
-                if (!SettingsManager.instance.settingsOpen)
+                if (!SettingsManager.instance.settingsOpen && !UpgradeTreeManager.instance.menuOpen)
                 {
                     HandleInputs();
                 }
@@ -343,7 +342,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
             }
             else
             {
-                if (GameManager.instance.time > lastDeathTime + 3f)
+                if (GameManager.instance.localTime > lastDeathTime + 3f)
                 {
                     Respawn();
                 }
@@ -369,71 +368,20 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         }
     }
     #endregion
-    #region UI
-    private void HandleUI()
-    {
-        WeaponBase weapon = GetHeldWeapon();
-        if (weapon != null)
-        {
-
-
-            if (weapon.primaryAmmoPerShot > 0)
-            {
-                if(!primaryAmmoText.enabled) {primaryAmmoText.enabled = true;}
-                primaryAmmoText.text = $"{weapon.primaryAmmo}";
-            }
-            else { primaryAmmoText.enabled = false; }
-            if (weapon.secondaryAmmoPerShot > 0)
-            {
-                if (!secondaryAmmoText.enabled) { secondaryAmmoText.enabled = true; }
-                secondaryAmmoText.text = $"{weapon.secondaryAmmo}";
-            }
-            else { secondaryAmmoText.enabled = false; }
-
-            if (weapon.reloadable && weapon.GetIsReloading())
-            {
-                if (!reloadIndicator.enabled) { reloadIndicator.enabled = true; }
-                reloadIndicator.fillAmount = Mathf.Clamp01(1f - Mathf.InverseLerp(weapon.reloadStartTime, weapon.reloadStartTime + weapon.reloadDelay, GameManager.instance.time));
-            }
-            else
-            {
-                reloadIndicator.enabled = false;
-            }
-            if (!weapon.GetCanPrimaryFire()) {
-                if (!primaryFireIndicator.enabled) { primaryFireIndicator.enabled = true; }
-                primaryFireIndicator.fillAmount = Mathf.Clamp01(1f - weapon.GetPrimaryFireDelayElapsedAmount01());
-            } else {
-                primaryFireIndicator.enabled = false;
-            }
-            if (!weapon.GetCanSecondaryFire()) {
-                if (!secondaryFireIndicator.enabled) { secondaryFireIndicator.enabled = true; }
-                secondaryFireIndicator.fillAmount = Mathf.Clamp01(1f - weapon.GetSecondaryFireDelayElapsedAmount01());
-            } else {
-                secondaryFireIndicator.enabled = false;
-            }
-        }
-        else { primaryAmmoText.text = ""; secondaryAmmoText.text = ""; }
-
-
-        healthText.text = Mathf.CeilToInt(health) + "";
-        healthText.color = Color.Lerp(Color.red, Color.green, health / 100f);
-    }
-
-    #endregion
     #region Movement & Physics
     private void HandleFakeGravity()
     {
-        if (!isGrounded) { rb.AddForce(Vector3.down * fakeGravity * Time.fixedDeltaTime); }
+        if (!isGrounded && GameManager.instance.localTime > lastJumpTime+0.2f) { rb.AddForce(Vector3.down * fakeGravity * Time.fixedDeltaTime); }
     }
     private void HandleMovement()
     {
+        if (GetIsPlayingFromGameState()) { return; }
         if (InputManager.instance.wasdInputs != Vector2.zero)
         {
-            float aimMoveSpeedMod = (isAiming ? GetHeldWeapon().aimingMoveSpeedModifier : 1f);
             Vector3 forwardVector = transform.forward * InputManager.instance.wasdInputs.y;
             Vector3 rightVector = transform.right * InputManager.instance.wasdInputs.x;
             Vector3 movementVector = Vector3.ProjectOnPlane((forwardVector + rightVector), currentGroundNormal);
-            rb.AddForce(movementVector*Time.fixedDeltaTime* moveSpeedModifierFromStatusEffects* aimMoveSpeedMod * moveSpeed);
+            rb.AddForce(movementVector*Time.fixedDeltaTime* moveSpeedModifierFromStatusEffects * moveSpeed);
         }
     }
     private void HandleGroundAndWallChecks()
@@ -454,11 +402,14 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     #region Input
     private void HandleInputs()
     {
+        if (GetIsPlayingFromGameState()) { return; }
+
         if (InputManager.instance.jump)
         {
             if (GetCanJump())
             {
                 jumps=0;
+                lastJumpTime = GameManager.instance.localTime;
                 rb.AddForce(Vector3.up * jumpForce);
                 AudioManager.instance.PlaySound(true, GetRandomJumpAudio(), Vector3.zero, 0.15f, 0.9f,myView.ViewID);
                 anim.SetTrigger("Jump");
@@ -471,21 +422,28 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         if(GetHeldWeapon() && !GetIsChangingWeapon())
         {
             WeaponBase weapon = GetHeldWeapon();
-            if (((!GetHeldWeapon().isFullAuto && InputManager.instance.mouse1) || (GetHeldWeapon().isFullAuto && InputManager.instance.mouse1Hold)) && GetHeldWeapon().GetCanPrimaryFire())
+            int primaryLevel = weapon.GetPrimaryAbilityLevel();
+            int secondaryLevel = weapon.GetSecondaryAbilityLevel();
+            if (primaryLevel != -1)
             {
-                if (weapon.DoPrimaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
+                if (((!GetHeldWeapon().isFullAuto[primaryLevel] && InputManager.instance.mouse1) || (GetHeldWeapon().isFullAuto[primaryLevel] && InputManager.instance.mouse1Hold)) && GetHeldWeapon().GetCanDoPrimaryAction())
                 {
-                    anim.SetTrigger("Fire");
-                }
+                    if (weapon.DoPrimaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
+                    {
+                        anim.SetTrigger("Fire");
+                    }
+                }        
             }
-            if ((!GetHeldWeapon().isFullAuto && InputManager.instance.mouse2) || (GetHeldWeapon().isFullAuto && InputManager.instance.mouse2Hold) && GetHeldWeapon().GetCanSecondaryFire())
+            if (secondaryLevel!=-1)
             {
-                if (weapon.DoSecondaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
-                {
-                    anim.SetTrigger("Fire");
-                }
+                if ((!GetHeldWeapon().isFullAuto[secondaryLevel] && InputManager.instance.mouse2) || (GetHeldWeapon().isFullAuto[secondaryLevel] && InputManager.instance.mouse2Hold) && GetHeldWeapon().GetCanDoSecondaryAction()){
+                    if (weapon.DoSecondaryAction(myCamera.transform.position, myCamera.transform.forward, muzzlePoint.transform.position))
+                    {
+                        anim.SetTrigger("Fire");
+                    }
+                }          
             }
-            if (InputManager.instance.reload && weapon.GetCanReload())
+            if (primaryLevel!=-1 && InputManager.instance.reload && weapon.GetCanReload())
             {
                 weapon.StartReloading();
             }
@@ -509,7 +467,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         anim.SetInteger("MovementX", Mathf.RoundToInt(InputManager.instance.wasdInputs.x));
         anim.SetInteger("MovementZ", Mathf.RoundToInt(InputManager.instance.wasdInputs.y));
         anim.SetBool("Grounded", isGrounded);
-        anim.SetBool("Aiming", isAiming);
+        //anim.SetBool("Aiming", isAiming);
         anim.SetBool("Dead", GetIsDead());
         if (GetHeldWeapon() != null) { 
             anim.SetBool("Reloading", GetHeldWeapon().GetIsReloading());
@@ -527,7 +485,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         cameraParent.transform.localEulerAngles = new Vector3(mouseLookXY.x, 0, 0);
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, mouseLookXY.y, transform.eulerAngles.z);
 
-        if (!SettingsManager.instance.settingsOpen && InputManager.instance.mouseDelta != Vector2.zero)//Apply mouse rotations
+        if (!SettingsManager.instance.settingsOpen && !UpgradeTreeManager.instance.menuOpen && InputManager.instance.mouseDelta != Vector2.zero)//Apply mouse rotations
         {
             AddMouseLook(new Vector2(InputManager.instance.mouseDelta.y * Time.deltaTime * mouseSensitivty, InputManager.instance.mouseDelta.x * Time.deltaTime * mouseSensitivty));
         }
@@ -551,12 +509,6 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         if (mouseLookXY.y < -360f) { mouseLookXY.y += 360f; }
     }
     
-    private void HandleAiming()
-    {
-        /*Weapon weapon = GetWeapon();
-        isAiming = weapon!=null&&InputManager.instance.mouse2Hold;
-        myCamera.fieldOfView = Mathf.Lerp(myCamera.fieldOfView, isAiming ? weapon.zoomFov : baseFov, Time.deltaTime * 30f);*/
-    }
     #endregion
     #region RPCs
     [PunRPC]
@@ -564,9 +516,9 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     {
         if (!isMine || GetIsDead()) { return; }
         health += delta;
-        if (delta < 0 && GameManager.instance.time>lastPainSoundTime+0.1f)
+        if (delta < 0 && GameManager.instance.localTime>lastPainSoundTime+0.1f)
         {
-            lastPainSoundTime = GameManager.instance.time;
+            lastPainSoundTime = GameManager.instance.localTime;
             AudioManager.instance.PlaySound(true, GetRandomPainAudio(), Vector3.zero, 0.7f, UnityEngine.Random.Range(0.9f,1.05f), myView.ViewID);
         }
         if(health<=0) { Die(); }
@@ -591,9 +543,11 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     #region Footsteps
     private void HandleFootsteps()
     {
-        if (GetShouldPlayFootstep() && GameManager.instance.time > lastFootstepTime + footstepDelay)
+        if (GetIsPlayingFromGameState()) { return; }
+
+        if (GetShouldPlayFootstep() && GameManager.instance.localTime > lastFootstepTime + footstepDelay)
         {
-            lastFootstepTime = GameManager.instance.time;
+            lastFootstepTime = GameManager.instance.localTime;
             AudioManager.instance.PlaySound(true, GetRandomFootstepAudio(), transform.position-Vector3.up, 0.075f, 1f, int.MinValue);
         }
     }
@@ -601,6 +555,8 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     #region Projectiles
     public void SpawnProjectile(string prefabPath, Vector3 position, Quaternion rotation, Vector3 targetPosition)
     {
+        if (GetIsPlayingFromGameState()) { return; }
+
         GameObject go = PhotonNetwork.Instantiate(prefabPath, position, rotation);
         ProjectileBase newProjectile = go.GetComponent<ProjectileBase>();
         newProjectile.owningPc = this;
@@ -618,7 +574,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         }
         KillfeedManager.instance.view.RPC(nameof(KillfeedManager.AddKillfeedElement), RpcTarget.All, lastHitByViewId, myView.ViewID);
         health = 0;
-        lastDeathTime = GameManager.instance.time;
+        lastDeathTime = GameManager.instance.localTime;
         ResetAllWeapons();
         ClearStatusEffects();
         col.height = 0.1f;
@@ -632,14 +588,22 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         transform.position = GameManager.instance.GetRandomSpawn(myTeam);
         lastHitByViewId = int.MinValue;
     }
+    public void ResetPlayer()
+    {
+        ClearStatusEffects();
+        ResetAllWeapons();
+        health = 100;
+        col.height = baseColliderHeight;
+        lastHitByViewId = int.MinValue;
+    }
     #endregion
     #region Status Effects
     [PunRPC]
-    public void RPC_AddStatusEffect(StatusEffectBase.EStatusEffects eStatusEffect, int uniqueID)
+    public void RPC_AddStatusEffect(EStatusEffects eStatusEffect, int uniqueID)
     {
         StatusEffectBase newEffect = StatusEffectBase.GetStatusEffectTypeFromEnum(eStatusEffect);
         newEffect.displayParticlesUniqueID = uniqueID;
-        newEffect.startTime = GameManager.instance.time;
+        newEffect.startTime = GameManager.instance.localTime;
         currentStatusEffects.Add(newEffect);
         if (myView.IsMine)
         {
@@ -648,20 +612,29 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
     }
     public void HandleStatusEffects()
     {
+        if (GetIsPlayingFromGameState()) { return; }
+
         moveSpeedModifierFromStatusEffects = 1f;
         for (int i = 0; i < currentStatusEffects.Count; i++)
         {
-            float time = GameManager.instance.time;
+            float time = GameManager.instance.localTime;
             StatusEffectBase effect = currentStatusEffects[i];
             if (time > effect.lifeTime + effect.startTime)
             {
                 currentStatusEffects.RemoveAt(i);
                 i--;
             }
-
-            if (effect.GetType() == typeof(StatusEffectGravitonGrasp))
+            switch (effect.eStatusEffect)
             {
-                moveSpeedModifierFromStatusEffects = 0.1f;
+                case EStatusEffects.GravitonGrasp:
+                    moveSpeedModifierFromStatusEffects = 0.1f;
+                    break;
+                case EStatusEffects.FlamingArmor:
+                    moveSpeedModifierFromStatusEffects = 1.1f;
+                        break;
+                default:
+                    break;
+
             }
         }
     }
@@ -677,7 +650,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         currentStatusEffects.Clear();
     }
     [PunRPC]
-    public void RPC_RemoveStatusEffect(StatusEffectBase.EStatusEffects eStatusEffect)
+    public void RPC_RemoveStatusEffect(EStatusEffects eStatusEffect)
     {
         StatusEffectBase toRemove = StatusEffectBase.GetStatusEffectTypeFromEnum(eStatusEffect);
 
@@ -696,4 +669,14 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
         }
     }
     #endregion
+    private void SetUpgradeTreeBranchNumOfWeapons() {
+        int counter = 1;
+        for (int i = 0; i < allItems.Length; i++)
+        {
+            allItems[i].primaryBranchNumInUpgradeTree = counter;
+            counter++;
+            allItems[i].secondayBranchNumInUpgradeTree = counter;
+            counter++;
+        }
+    }
 }

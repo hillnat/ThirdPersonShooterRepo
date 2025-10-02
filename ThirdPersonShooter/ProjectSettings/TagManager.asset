@@ -8,16 +8,15 @@ TagManager:
   - CameraParent
   - MuzzlePoint
   - HeadPoint
-  - PlayerHudUi
-  - PlayerHud_HealthText
-  - PlayerHud_ReloadIndicator
   - ItemMesh
   - RedSpawn
   - BlueSpawn
+  - PlayerHudUi
   - PlayerHud_PrimaryAmmoText
   - PlayerHud_SecondaryAmmoText
+  - PlayerHud_HealthText
+  - PlayerHud_ReloadIndicator
   - PlayerHud_PrimaryFireIndicator
-  - PlayerHud_SecondaryFireIndicator
   layers:
   - Default
   - TransparentFX

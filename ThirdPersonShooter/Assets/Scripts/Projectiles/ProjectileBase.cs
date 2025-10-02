@@ -13,8 +13,9 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     [HideInInspector]public PlayerControllerBase owningPc;
     [HideInInspector] protected Rigidbody rb;
     [HideInInspector] public Collider mainCollider;
+    private float lastImpactTime = float.MinValue;
     public virtual EProjectileMaxBounceBehavior afterMaxBounceBehavior { get; } = EProjectileMaxBounceBehavior.Destroy;
-    public virtual StatusEffectBase.EStatusEffects[] onHitStatusEffects { get; } = new StatusEffectBase.EStatusEffects[0];
+    public virtual EStatusEffects[] onHitStatusEffects { get; } = new EStatusEffects[0];
     public virtual bool hasGravity { get; } = true;
     public virtual bool dealsDamage { get; } = true;
     public virtual float initialForce { get; } = 0f;
@@ -52,7 +53,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (view.IsMine)
+        if (stream.IsWriting)
         {
             stream.SendNext(transform.position);
             stream.SendNext(transform.rotation);
@@ -70,7 +71,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
         rb = GetComponent<Rigidbody>();
         rb.useGravity = hasGravity;
         mainCollider = GetComponent<Collider>();
-        spawnTime = GameManager.instance.time;
+        spawnTime = GameManager.instance.localTime;
         hitPcs.Clear();
         if (mainCollider.GetType() == typeof(SphereCollider))
         {
@@ -100,7 +101,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     {
         if (view.IsMine)
         {
-            if (lifetime != 0 && GameManager.instance.time > spawnTime + lifetime)
+            if (lifetime != 0 && GameManager.instance.localTime > spawnTime + lifetime)
             {
                 DestroyProjectile();
             }
@@ -115,7 +116,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
                 currentPosition = transform.position;
                 Vector3 dir = (currentPosition - lastPosition);
                 RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.05f, dir.normalized, dir.magnitude, hitLayerMask);
-                //Debug.DrawRay(lastPosition, dir, Color.yellow, 5f);
+                Debug.DrawRay(lastPosition, dir, Color.yellow, 5f);
                 for (int i = 0; i < hits.Length; i++)
                 {
                     PlayerControllerBase hitPc = hits[i].collider.transform.root.GetComponent<PlayerControllerBase>();
@@ -182,7 +183,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             ParticleManager.instance.PlayGoreParticles(true, transform.position, transform.rotation, int.MinValue);
             for (int i = 0; i < onHitStatusEffects.Length; i++)
             {
-                targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_AddStatusEffect), RpcTarget.All, onHitStatusEffects[i], Random.Range(0,int.MaxValue));
+                targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_AddStatusEffect), RpcTarget.All, onHitStatusEffects[i], StatusEffectBase.GetRandomUniqueId());
             }
             targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_SetLastHitBy), RpcTarget.All, owningPc.myView.ViewID);
             targetPc.myView.RPC(nameof(PlayerControllerBase.RPC_ChangeHealth), RpcTarget.All, -damage);
@@ -196,14 +197,19 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     {
         if (isFrozen) { return; }
         if (collision.gameObject.transform.root.GetComponent<PlayerControllerBase>()) { return; }
-        AudioManager.instance.PlaySound(true, GetRandomImpactAudio(), transform.position, impactAudioVolumeModifier, Random.Range(impactAudioPitchRange.x,impactAudioPitchRange.y), int.MinValue);
-        ParticleManager.instance.PlayImpactParticles(true, transform.position, transform.rotation, int.MinValue);
-        bounceCounter++;
+        if (GameManager.instance.localTime > lastImpactTime + 0.25f)
+        {
+            AudioManager.instance.PlaySound(true, GetRandomImpactAudio(), transform.position, impactAudioVolumeModifier, Random.Range(impactAudioPitchRange.x, impactAudioPitchRange.y), int.MinValue);
+            ParticleManager.instance.PlayImpactParticles(true, transform.position, transform.rotation, int.MinValue);
+            lastImpactTime=GameManager.instance.localTime;
+        }
         HandleBounceBehavior();
     }
   
     public virtual void HandleBounceBehavior()
     {
+        bounceCounter++;
+
         if (maxBouncesReached)
         {
             switch (afterMaxBounceBehavior)

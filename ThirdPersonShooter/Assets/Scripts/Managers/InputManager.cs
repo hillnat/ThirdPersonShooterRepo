@@ -13,6 +13,7 @@ public class InputManager : MonoBehaviour
     public bool mouse1Hold = false;
     public bool mouse2Hold = false;
     public bool openSettings = false;
+    public bool openUpgradeTree = false;
     public bool alpha1 = false;
     public bool alpha2 = false;
     public bool alpha3 = false;
@@ -23,7 +24,6 @@ public class InputManager : MonoBehaviour
     public bool alpha8 = false;
     public bool alpha9 = false;
     public bool alpha0 = false;
-    public bool buyMenu = false;
     public Vector2 mousePosition = Vector2.zero;
     public Vector2 mouseDelta = Vector2.zero;
     public Vector2 scrollDelta = Vector2.zero;
@@ -56,7 +56,7 @@ public class InputManager : MonoBehaviour
         if (alpha8) { alpha8 = false; }
         if (alpha9) { alpha9 = false; }
         if (alpha0) { alpha0 = false; }
-        if (buyMenu) { buyMenu = false; }
+        if (openUpgradeTree) { openUpgradeTree = false; }
     }
     private void Update()
     {
@@ -85,7 +85,7 @@ public class InputManager : MonoBehaviour
     private void OnAlpha8() { alpha8 = true; }
     private void OnAlpha9() { alpha9 = true; }
     private void OnAlpha0() { alpha0 = true; }
-    private void OnBuyMenu() { buyMenu = true; }
+    private void OnUpgradeTree() { openUpgradeTree = true; }
     private void OnMouse1Hold(InputValue iv) { mouse1Hold = iv.Get<float>() > 0; }
     private void OnMouse2Hold(InputValue iv) { mouse2Hold = iv.Get<float>() > 0; }
 }

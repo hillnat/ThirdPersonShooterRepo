@@ -16,7 +16,7 @@ public class ProjectilePhotonBind : ProjectileBase
 
     public override float headshotMultiplier => 3;
     public override bool hasGravity => false;
-    public override StatusEffectBase.EStatusEffects[] onHitStatusEffects => new StatusEffectBase.EStatusEffects[1] { StatusEffectBase.EStatusEffects.PhotonDecay };
+    public override EStatusEffects[] onHitStatusEffects => new EStatusEffects[1] { EStatusEffects.PhotonDecay };
     public override EProjectileMaxBounceBehavior afterMaxBounceBehavior => EProjectileMaxBounceBehavior.Destroy;
 
     public override float impactAudioVolumeModifier => 0.2f;

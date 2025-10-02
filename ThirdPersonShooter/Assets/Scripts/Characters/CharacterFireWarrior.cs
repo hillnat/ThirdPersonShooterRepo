@@ -10,13 +10,13 @@ public class CharacterFireWarrior : PlayerControllerBase
 
     public override int maxItems => 2;
 
-    public override string characterNameInFile => "CharacterSniper";
+    public override string characterNameInFile => "CharacterFireWarrior";
 
     private void Awake()
     {
         List<WeaponBase> weapons = new List<WeaponBase>();
         weapons.Add(gameObject.AddComponent<WeaponSchimtarBrand>());
-        weapons.Add(gameObject.AddComponent<WeaponPhotonSpellbook>());
+        weapons.Add(gameObject.AddComponent<WeaponEmberAmulet>());
         allItems = weapons.ToArray();
         base.Awake();
     }
