@@ -14,8 +14,8 @@ public class WeaponPhotonSpellbook : WeaponBase
     public override int[] primaryAmmoPerShot => Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
     public override int[] secondaryAmmoPerShot => Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
 
-    public override float[] primaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 3f, 2f, 1f, 0.7f };
-    public override float[] secondaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 8f, 6f, 4, 2f };
+    public override float[] primaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 3f, 2f, 1f, 0.7f };
+    public override float[] secondaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 8f, 6f, 4, 2f };
 
     public override bool reloadable => false;
     public override string primaryProjectilePrefabPath { get; } = "Projectiles/Projectile_PhotonSplit";

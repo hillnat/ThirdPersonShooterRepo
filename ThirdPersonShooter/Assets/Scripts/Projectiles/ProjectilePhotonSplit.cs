@@ -62,7 +62,7 @@ public class ProjectilePhotonSplit : ProjectileBase
             WeaponBase spellbook = owningPc.GetWeaponOfType(typeof(WeaponPhotonSpellbook));
             if (spellbook != null)
             {
-                spellbook.lastPrimaryFireTime -= 1.25f;
+                spellbook.lastPrimaryActionTime -= 1.25f;
             }
         }
         return DealDamageToPc(hitPc, damage*statusEffectMultiplier, isHeadshot, impactPoint);

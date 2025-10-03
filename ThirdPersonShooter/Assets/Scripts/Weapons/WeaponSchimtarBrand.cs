@@ -11,10 +11,9 @@ public class WeaponSchimtarBrand : WeaponBase
     public override int indexInAnimator => 10;
     public override int[] primaryAmmoPerShot => Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
     public override int[] secondaryAmmoPerShot => Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
-    public override float[] primaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 1f, 0.8f, 0.6f, 0.5f };
-    public override float[] secondaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 20f, 16f, 13f, 11f };
+    public override float[] primaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 1.5f, 1.2f, 0.8f, 0.5f };
+    public override float[] secondaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 13f, 11f, 9f, 6f };
     public override float[] maxRange => new float[UpgradeTree.maxPointsPerBranch] { 1.5f,1.75f,2f,2.3f };
-    public override string secondaryProjectilePrefabPath => "Projectiles/Projectile_FlameWall";
     public override bool reloadable => false;
 
     private void Awake()
@@ -48,7 +47,7 @@ public class WeaponSchimtarBrand : WeaponBase
     public override bool DoSecondaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
     {
         if (!base.DoSecondaryAction(cameraOrigin, cameraForward, muzzlePosition)) { return false; }
-        FireProjectile(cameraOrigin, myPc.transform.forward, muzzlePosition,false);
+        myPc.myView.RPC(nameof(myPc.RPC_AddStatusEffect), Photon.Pun.RpcTarget.AllBufferedViaServer, EStatusEffects.FlamingArmor, StatusEffectBase.GetRandomUniqueId());
         return true;
     }
 }

@@ -11,8 +11,8 @@ public class WeaponDarkMatterSpellbook : WeaponBase
     public override string weaponName => "Dark Matter Spellbook";
 
 
-    public override float[] primaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 15f, 12f, 10f, 7f };
-    public override float[] secondaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] {12f,9f,7.5f,4f};
+    public override float[] primaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 15f, 12f, 10f, 7f };
+    public override float[] secondaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] {12f,9f,7.5f,4f};
     public override int[] primaryAmmoPerShot { get; } = Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
     public override int[] secondaryAmmoPerShot { get; } = Enumerable.Repeat(0, UpgradeTree.maxPointsPerBranch).ToArray();
     public override bool reloadable => false;

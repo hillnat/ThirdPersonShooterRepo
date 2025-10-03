@@ -5,7 +5,7 @@ using UnityEngine;
 public class FollowPhotonView : MonoBehaviour
 {
     public Transform followObject;
-    private void FixedUpdate()
+    private void Update()
     {
         if (followObject != null)
         {

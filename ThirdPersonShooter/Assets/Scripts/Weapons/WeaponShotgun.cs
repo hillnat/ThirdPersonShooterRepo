@@ -10,7 +10,7 @@ public class WeaponShotgun : WeaponBase
     public override Vector2[] xRecoilMinMax => new Vector2[UpgradeTree.maxPointsPerBranch] { new Vector2(0.4f, 0.4f), new Vector2(0.3f, 0.35f), new Vector2(0.2f, 0.25f), new Vector2(0.05f, 0.07f) };
     public override Vector2[] yRecoilMinMax => new Vector2[UpgradeTree.maxPointsPerBranch] { new Vector2(0.4f, 0.4f), new Vector2(0.3f, 0.35f), new Vector2(0.2f, 0.25f), new Vector2(0.05f, 0.07f) };
     public override int[] primaryMaxAmmo => new int[UpgradeTree.maxPointsPerBranch] { 3, 4, 5, 6 };
-    public override float[] primaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 1f, 0.8f, 0.6f, 0.5f, };
+    public override float[] primaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 1f, 0.8f, 0.6f, 0.5f, };
     public override float[] yawSpread => new float[UpgradeTree.maxPointsPerBranch] { 4f, 3.5f, 3f, 2.5f };
     public override float[] pitchSpread => new float[UpgradeTree.maxPointsPerBranch] { 4f, 3.5f, 3f, 2.5f };
     public override float[] maxRange => new float[UpgradeTree.maxPointsPerBranch] { 15, 17, 20, 25 };
@@ -39,11 +39,13 @@ public class WeaponShotgun : WeaponBase
     }
     public override void CompleteReload()
     {
+        int level = GetPrimaryAbilityLevel();
+        if (level == -1) { return; }
         //base.CompleteReload();
         ChangePrimaryAmmo(1);
         reloadStartTime = float.MinValue;
 
-        if (GetCanReload())
+        if (GetCanReload() && primaryAmmo!=primaryMaxAmmo[level])
         {
             StartReloading();
         }
@@ -51,5 +53,11 @@ public class WeaponShotgun : WeaponBase
     private void FixedUpdate()
     {
         base.FixedUpdate();
+    }
+    public override bool DoPrimaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
+    {
+        if (!base.DoPrimaryAction(cameraOrigin, cameraForward, muzzlePosition)) { return false; }
+        FireHitscan(cameraOrigin, cameraForward, muzzlePosition, true);
+        return true;
     }
 }

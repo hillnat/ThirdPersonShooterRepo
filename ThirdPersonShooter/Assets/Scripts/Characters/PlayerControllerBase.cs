@@ -48,7 +48,7 @@ public abstract class PlayerControllerBase : MonoBehaviour, IPunObservable
 
     private const float jumpDelay = 0.5f;
     private const float fakeGravity = 3000f;
-    private const float groundedCheckDistance = 0.05f;
+    private const float groundedCheckDistance = 0.125f;
     private const float groundedCheckOriginOffset = -0.99f;
 
 

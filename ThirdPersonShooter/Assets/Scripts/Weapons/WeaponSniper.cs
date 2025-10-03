@@ -18,7 +18,7 @@ public class WeaponSniper : WeaponBase
 
     public override int[] primaryMaxAmmo => new int[UpgradeTree.maxPointsPerBranch] { 3,4,5,6 };
 
-    public override float[] primaryFireDelay => new float[UpgradeTree.maxPointsPerBranch] { 1f,0.8f,0.6f,0.5f,};
+    public override float[] primaryActionDelay => new float[UpgradeTree.maxPointsPerBranch] { 1f,0.8f,0.6f,0.5f,};
 
     public override float[] reloadDelay => new float[UpgradeTree.maxPointsPerBranch] { 5f,4.5f,4f,3.5f };
     public override float[] maxRange => new float[UpgradeTree.maxPointsPerBranch] { 100, 300, 500, 1000 };

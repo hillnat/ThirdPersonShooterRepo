@@ -8,11 +8,11 @@ public abstract class WeaponBase : MonoBehaviour
 
     protected PlayerControllerBase myPc;
     public Vector2 currentRecoil = Vector2.zero;
-    public float lastPrimaryFireTime = 0;
-    public float lastSecondaryFireTime = 0;
+    public float lastPrimaryActionTime = 0;
+    public float lastSecondaryActionTime = 0;
     public int primaryAmmo=0;
     public int secondaryAmmo=0;
-    public float reloadStartTime = float.MinValue;
+    public float reloadStartTime = 0;
     private bool wasReloading = false;
     private AudioClip[] primaryFireSounds;
     private AudioClip[] secondaryFireSounds;
@@ -22,7 +22,7 @@ public abstract class WeaponBase : MonoBehaviour
     public virtual int indexInAnimator { get; } = 0;
     public abstract string weaponNameInFile { get; }
     public abstract string weaponName { get; }
-    //Each value that can be changed via upgrades is stored in an array with the length of the max upgrade count.
+    //Each value that can be changed via upgrades is stored in an array with the length of the max upgrade count
     public virtual Vector2[] xRecoilMinMax { get; } = Enumerable.Repeat(Vector2.zero, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual Vector2[] yRecoilMinMax { get; } = Enumerable.Repeat(Vector2.zero, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual int[] primaryMaxAmmo { get; } = Enumerable.Repeat(1, UpgradeTree.maxPointsPerBranch).ToArray();//Max ammo doesnt matter if ammo per shot is 0
@@ -33,8 +33,8 @@ public abstract class WeaponBase : MonoBehaviour
     public virtual float[] damage { get; } = Enumerable.Repeat(0f, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual int[] pelletsPerShot { get; } = Enumerable.Repeat(1, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual float[] headshotModifier { get; } = Enumerable.Repeat(1f, UpgradeTree.maxPointsPerBranch).ToArray();
-    public virtual float[] primaryFireDelay { get; } = Enumerable.Repeat(1f, UpgradeTree.maxPointsPerBranch).ToArray();
-    public virtual float[] secondaryFireDelay { get; } = Enumerable.Repeat(1f, UpgradeTree.maxPointsPerBranch).ToArray();
+    public virtual float[] primaryActionDelay { get; } = Enumerable.Repeat(1f, UpgradeTree.maxPointsPerBranch).ToArray();
+    public virtual float[] secondaryActionDelay { get; } = Enumerable.Repeat(1f, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual float[] yawSpread { get; } = Enumerable.Repeat(0f, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual float[] pitchSpread { get; } = Enumerable.Repeat(0f, UpgradeTree.maxPointsPerBranch).ToArray();
     public virtual float[] maxRange { get; } = Enumerable.Repeat(1000f, UpgradeTree.maxPointsPerBranch).ToArray();
@@ -90,42 +90,54 @@ public abstract class WeaponBase : MonoBehaviour
         return Mathf.Clamp01(Mathf.InverseLerp(0f, reloadDelay[level], GameManager.instance.localTime - reloadStartTime));
     }
     public bool GetCanReload() { return reloadable && !GetIsReloading() && GetPrimaryAbilityLevel() != -1; }
+    public bool GetPrimaryActionDelayElapsed()
+    {
+        int level = GetPrimaryAbilityLevel();
+        if (level == -1) { return false; }
+        return GameManager.instance.localTime > lastPrimaryActionTime + primaryActionDelay[level];
+    }
+    public bool GetSecondaryActionDelayElapsed()
+    {
+        int level = GetSecondaryAbilityLevel();
+        if (level == -1) { return false; }
+        return GameManager.instance.localTime > lastSecondaryActionTime + secondaryActionDelay[level];
+    }
     public bool GetCanDoPrimaryAction() { 
         int level = GetPrimaryAbilityLevel();
         if(level==-1) {return false; }
-        return GameManager.instance.localTime > lastPrimaryFireTime + primaryFireDelay[level] &&
+        return GetPrimaryActionDelayElapsed() &&
             (primaryAmmo > 0 || primaryAmmoPerShot[level] == 0);
     }
     public bool GetCanDoSecondaryAction() {
         int level = GetSecondaryAbilityLevel();
         if (level == -1) { return false; }
-        return GameManager.instance.localTime > lastSecondaryFireTime + secondaryFireDelay[level] &&
+        return GetSecondaryActionDelayElapsed() &&
             (secondaryAmmo > 0 || secondaryAmmoPerShot[level] == 0);
     }
-    public float GetPrimaryFireDelayElapsedAmount01()
+    public float GetPrimaryFireDelayElapsedTime01()
     {
         int level = GetPrimaryAbilityLevel();
         if (level == -1) { return 0f; }
-        return Mathf.Clamp01(1f-Mathf.InverseLerp(0f, primaryFireDelay[level], GameManager.instance.localTime - lastPrimaryFireTime));
+        return Mathf.Clamp01(1f-Mathf.InverseLerp(0f, primaryActionDelay[level], GameManager.instance.localTime - lastPrimaryActionTime));
     }
-    public float GetSecondaryFireDelayElapsedAmount01()
+    public float GetSecondaryFireDelayElapsedTime01()
     {
         int level = GetSecondaryAbilityLevel();
         if (level == -1) { return 0f; }
-        return Mathf.Clamp01(1f-Mathf.InverseLerp(0f, secondaryFireDelay[level], GameManager.instance.localTime - lastSecondaryFireTime));
+        return Mathf.Clamp01(1f-Mathf.InverseLerp(0f, secondaryActionDelay[level], GameManager.instance.localTime - lastSecondaryActionTime));
     }
-    public float GetPrimaryFireDelayTimeLeft()
+    public float GetPrimaryActionDelayTimeLeft()
     {
         int level = GetPrimaryAbilityLevel();
         if (level == -1) { return 0f; }
-        float elapsed = (primaryFireDelay[level] + lastPrimaryFireTime) - (GameManager.instance.localTime);
+        float elapsed = (primaryActionDelay[level] + lastPrimaryActionTime) - (GameManager.instance.localTime);
         return ((int)(elapsed * 10)) / 10f;
     }
-    public float GetSecondaryFireDelayTimeLeft()
+    public float GetSecondaryActionDelayTimeLeft()
     {
         int level = GetSecondaryAbilityLevel();
         if (level == -1) { return 0f; }
-        float elapsed = (secondaryFireDelay[level] + lastSecondaryFireTime) - (GameManager.instance.localTime);
+        float elapsed = (secondaryActionDelay[level] + lastSecondaryActionTime) - (GameManager.instance.localTime);
         return ((int)(elapsed * 10)) / 10f;
     }
     private float GetValueFromYawSpread()
@@ -156,7 +168,7 @@ public abstract class WeaponBase : MonoBehaviour
         if (level == -1) { return false; }
         AudioManager.instance.PlaySound(true, GetRandomPrimaryFireSound(), muzzlePosition, 1f, Random.Range(0.9f, 1.1f), myPc.myView.ViewID);
         ChangePrimaryAmmo(-primaryAmmoPerShot[level]);
-        lastPrimaryFireTime = GameManager.instance.localTime;
+        lastPrimaryActionTime = GameManager.instance.localTime;
         return true;
     }
     public virtual bool DoSecondaryAction(Vector3 cameraOrigin, Vector3 cameraForward, Vector3 muzzlePosition)
@@ -166,7 +178,7 @@ public abstract class WeaponBase : MonoBehaviour
         if (level == -1) { return false; }
         AudioManager.instance.PlaySound(true, GetRandomSecondaryFireSound(), muzzlePosition, 1f, Random.Range(0.9f, 1.1f), myPc.myView.ViewID);
         ChangeSecondaryAmmo(-secondaryAmmoPerShot[level]);
-        lastSecondaryFireTime = GameManager.instance.localTime;
+        lastSecondaryActionTime = GameManager.instance.localTime;
         return true;
     }
     public void FireMelee(Vector3 cameraOrigin, Vector3 cameraForward, float radius, bool isPrimary)
@@ -222,7 +234,7 @@ public abstract class WeaponBase : MonoBehaviour
             if (!cameraRaySuccess)
             {
                 Physics.queriesHitBackfaces = false;
-                return;
+                continue;
             }
 
 
@@ -230,7 +242,7 @@ public abstract class WeaponBase : MonoBehaviour
             bool muzzleRaySuccess = Physics.Raycast(muzzlePosition, muzzleDirection, out RaycastHit hit2, maxRange[level]);//Muzzle ray
             Physics.queriesHitBackfaces = false;
 
-            if (!muzzleRaySuccess) { return; }
+            if (!muzzleRaySuccess) { continue; }
 
 
             if (hit2.transform.root.gameObject.TryGetComponent<PlayerControllerBase>(out PlayerControllerBase hitPc) && hitPc != myPc && !hitPc.GetIsDead())//Hit player
@@ -297,8 +309,8 @@ public abstract class WeaponBase : MonoBehaviour
         int secondaryLevel = GetSecondaryAbilityLevel();
         if (primaryLevel != -1) { primaryAmmo = primaryMaxAmmo[primaryLevel]; }
         if (secondaryLevel != -1) { secondaryAmmo = secondaryMaxAmmo[secondaryLevel]; }
-        lastPrimaryFireTime = float.MinValue;
-        lastSecondaryFireTime=float.MinValue;
+        lastPrimaryActionTime = float.MinValue;
+        lastSecondaryActionTime=float.MinValue;
         reloadStartTime= float.MinValue;
         currentRecoil = Vector2.zero;
         if(GetIsReloading() ) {CancelReload();}
@@ -322,8 +334,9 @@ public abstract class WeaponBase : MonoBehaviour
     public virtual void CompleteReload()
     {
         if (!reloadable) { return; }
-        primaryAmmo = primaryMaxAmmo[GetPrimaryAbilityLevel()];
-        secondaryAmmo = secondaryMaxAmmo[GetSecondaryAbilityLevel()];
+        if (GetPrimaryAbilityLevel() != -1) { primaryAmmo = primaryMaxAmmo[GetPrimaryAbilityLevel()]; }
+        if (GetSecondaryAbilityLevel() != -1) { secondaryAmmo = secondaryMaxAmmo[GetSecondaryAbilityLevel()]; }
+        
         reloadStartTime = float.MinValue;
     }
     public void Start()

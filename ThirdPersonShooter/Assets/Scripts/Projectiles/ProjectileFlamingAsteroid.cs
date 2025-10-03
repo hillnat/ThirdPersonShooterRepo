@@ -19,6 +19,11 @@ public class ProjectileFlamingAsteroid : ProjectileBase
 
     public override string projectileNameInFile => "FlamingAsteroid";
     public override float colliderRadius => 3f;
+    public override float playerHitSpherecastRadius => 10f;
+    public override float impactAudioVolumeModifier => 0.7f;
+    public override float spawnAudioVolumeModifier => 1.2f;
+    public override Vector2 spawnAudioPitchRange => new Vector2(0.9f,1.1f);
+    public override Vector2 impactAudioPitchRange => new Vector2(0.9f,1.1f);
 
     private void Awake()
     {

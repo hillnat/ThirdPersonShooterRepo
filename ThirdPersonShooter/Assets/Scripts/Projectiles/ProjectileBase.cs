@@ -26,8 +26,11 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     public virtual float headshotMultiplier { get; } = 1f;
     public virtual float impactAudioVolumeModifier { get; } = 1f;
     public virtual Vector2 impactAudioPitchRange { get; } = Vector2.one;
+    public virtual float spawnAudioVolumeModifier { get; } = 1f;
+    public virtual Vector2 spawnAudioPitchRange { get; } = Vector2.one;
     public virtual float colliderRadius { get; } = 0.5f;
     public abstract string projectileNameInFile { get; }
+    public virtual float playerHitSpherecastRadius { get; } = 0.05f;
 
     private float spawnTime = 0f;
     [HideInInspector] public Vector3 targetPosition=Vector3.zero;
@@ -43,12 +46,19 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
     private Vector3 currentPosition;
     private LayerMask hitLayerMask;
     private AudioClip[] impactAudioClips;
+    private AudioClip[] spawnAudioClips;
 
     private string impactSoundsPath => $"Audio/Projectiles/{projectileNameInFile}/Impact";
+    private string spawnSoundsPath => $"Audio/Projectiles/{projectileNameInFile}/Spawn";
     private AudioClip GetRandomImpactAudio()
     {
         if (impactAudioClips.Length == 0) { return null; }
         else { return impactAudioClips[Random.Range(0, impactAudioClips.Length)]; }
+    }
+    private AudioClip GetRandomSpawnAudio()
+    {
+        if (spawnAudioClips.Length == 0) { return null; }
+        else { return spawnAudioClips[Random.Range(0, spawnAudioClips.Length)]; }
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -84,11 +94,14 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
         if (view.IsMine)
         {
             impactAudioClips = Resources.LoadAll<AudioClip>(impactSoundsPath);
+            spawnAudioClips = Resources.LoadAll<AudioClip>(spawnSoundsPath);
             FreezeProjectile(false);
             transform.LookAt(targetPosition);
             rb.AddForce(initialForce * transform.forward);
             targetPosition = Vector3.zero;
             lastPosition = transform.position;
+
+            AudioManager.instance.PlaySound(true, GetRandomSpawnAudio(), Vector3.zero, spawnAudioVolumeModifier, Random.Range(spawnAudioPitchRange.x,spawnAudioPitchRange.y), view.ViewID);
         }
         else
         {
@@ -115,7 +128,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
             {
                 currentPosition = transform.position;
                 Vector3 dir = (currentPosition - lastPosition);
-                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, 0.05f, dir.normalized, dir.magnitude, hitLayerMask);
+                RaycastHit[] hits = Physics.SphereCastAll(lastPosition, playerHitSpherecastRadius, dir.normalized, dir.magnitude, hitLayerMask);
                 Debug.DrawRay(lastPosition, dir, Color.yellow, 5f);
                 for (int i = 0; i < hits.Length; i++)
                 {
@@ -225,5 +238,13 @@ public abstract class ProjectileBase : MonoBehaviour, IPunObservable
                 default: break;
             }
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, playerHitSpherecastRadius);
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, colliderRadius);
     }
 }
